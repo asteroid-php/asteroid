@@ -1,0 +1,60 @@
+{% spaceless %}<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+	
+	<title>{% if title != "" %}{{ title }} - {% endif %}Package Manager - {{ config.title }}</title>
+	<link rel="stylesheet" type="text/css" href="{{ application.getCDNURL("2.0/package-manager/uploader.min.scss") }}" />
+	
+	<!--[if lt IE 9]>
+		<script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+		<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+	<div class="upload-modal">
+		<div class="modal-header">
+			<button class="close" type="button" aria-label="Close" onclick="if(window.top != window) window.parent.$('#uploadmodal').modal('hide'); else if(window.history.length > 0) window.history.back(); else window.close();"><span aria-hidden="true">&times;</span></button>
+			<h4 class="modal-title" id="exampleModalLabel">Upload file</h4>
+		</div>
+		<div class="modal-body">
+			<div class="container-fluid messages" data-ajaxify="messages">{% for message in application.getMessages() %}
+					<div class="alert alert-{% if message.type == "success" %}success{% elseif message.type == "neutral" %}info{% elseif message.type == "error" %}danger{% elseif message.type == "warning" %}warning{% endif %} alert-dismissable">
+						<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						{{ message.message|raw|parsedown_line }}
+					</div>
+				{% endfor %}</div>
+			
+			<div>{{ description|parsedown }}</div>
+			<form class="upload" id="uploadmodal_form" action="{{ action }}" method="post" enctype="multipart/form-data" onsubmit="$(this).find('.uploading').fadeIn(); $(this).find('button:not([type]), [type=\'submit\']').prop('disabled', true); $('button[form=\'uploadmodal_form\']:not([type]), [form=\'uploadmodal_form\'][type=\'submit\']').prop('disabled', true);">
+				<div class="form-group">
+					<input class="form-control" type="file" name="file{% if multiple %}[]{% endif %}" value=""{% if multiple %} multiple="multiple"{% endif %}{% if accept is string %} accept="{{ accept }}"{% endif %} />
+				</div>
+				
+				<div class="uploading" style="display: none;">
+					<p>Uploading...</p>
+				</div>
+			</form>
+		</div>
+		<div class="modal-footer">
+			<button type="button" class="btn btn-default" onclick="if(window.top != window) window.parent.$('#uploadmodal').modal('hide'); else if(window.history.length > 0) window.history.back(); else window.close();">Close</button>
+			<button class="btn btn-primary" type="submit" form="uploadmodal_form">Upload</button>
+		</div>
+	</div>
+	
+	<script src="{{ application.getCDNURL("jquery/1.11/jquery.min.js") }}"></script>
+	<script src="{{ application.getCDNURL("bootstrap/3.3/dist/js/bootstrap.min.js") }}"></script>
+	<script>
+		// Update frame height
+		$(window).on("resize", function() {
+			if((window.top == window) || (window.parent.location.host != window.location.host) || !window.frameElement)
+				return;
+			
+			$(window.frameElement).css("height", $(window).height());
+		}).trigger("resize");
+	</script>
+</body>
+</html>
+{% endspaceless %}

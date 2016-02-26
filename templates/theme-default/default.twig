@@ -1,0 +1,321 @@
+{% spaceless %}<!DOCTYPE html>
+<html id="html" class="html {{ config.template_html_class }}" style=" min-height: 100%; ">
+<head>
+	<title>{% if title != "" %}{{ title }} - {% endif %}{{ config.title }}</title>
+	<meta name="title" content="{{ config.title }}" />
+	<meta name="description" content="{{ config.description|striptags }}" />
+	<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no" />
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+	<link rel="icon" type="image/png" href="{{ baseurl }}/index/icon" />
+	<link rel="apple-touch-icon-precomposed" type="image/png" href="{{ baseurl }}/index/apple-touch-icon" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+	
+	<!-- Stylesheets -->
+	<link rel="stylesheet" type="text/css" href="{{ baseurl ~ config.template_css_file }}" />
+	{% if config.template_fancybuttons == true %}
+		<link rel="stylesheet" type="text/css" href="{{ baseurl }}/static/themes/default/scss/fancy-buttons.scss" />
+	{% endif %}
+	{% for content in config.template_css_additional|keys %}
+		{% set type = config.template_css_additional[content] %}
+		{% if content is not string and type is string %}{# Content isn't a string, but type is. Maybe type is some css? #}
+			<style{{ type|escape("css") }}</style>
+		{% elseif content is string and type == "file" %}{# Content is a string, and type is url. #}
+			<link rel="stylesheet" type="text/css" href="{{ content }}" />
+		{% elseif content is string and type == "inline" %}{# Content is a string, and type is inline. #}
+			<style>{{ content }}</style>
+		{% elseif application.errors %}
+			<!-- Error: additional css type "{{ type }}" unknown. -->
+		{% endif %}
+	{% endfor %}
+	
+	<!-- jQuery 1.11.1 & jQuery UI 1.11.1 -->
+	<link rel="stylesheet" href="{{ application.getCDNURL("jquery/1.11/jquery-ui.min.css") }}" />
+	
+	{% if config.template_ajaxify == true %}
+		<!-- Ajaxify -->
+		<style>
+			.auto-updating { display: none; }
+			.updating .auto-updating { display: block; position: fixed; min-width: 100px; max-width: 100%; right: 0px; bottom: 0px; background-color: rgba(0, 0, 0, 0.8); color: #ffffff; padding: 10px; box-shadow: 0px 0px 10px #000000; z-index: 99999999; }
+		</style>
+	{% endif %}
+	
+	<!-- Fancybox -->
+	<!-- Add fancyBox --><link rel="stylesheet" href="{{ application.getCDNURL("fancybox/2.1/source/jquery.fancybox.css?v=2.1.5") }}" type="text/css" media="screen" />
+	<!-- Optionally add helpers - button, thumbnail and/or media --><link rel="stylesheet" href="{{ application.getCDNURL("fancybox/2.1/source/helpers/jquery.fancybox-buttons.css?v=1.0.5") }}" type="text/css" media="screen" />
+	<link rel="stylesheet" href="{{ application.getCDNURL("fancybox/2.1/source/helpers/jquery.fancybox-thumbs.css?v=1.0.7") }}" type="text/css" media="screen" />
+	
+	<!-- Highlight.js -->
+	<link rel="stylesheet" href="https://samuelthomas.ml/static/highlight/styles/github-gist.css" type="text/css" />
+	
+	{# Trigger the render_head event #}
+		{% set responses = application.events.triggerR("render_head") %}
+		{% if responses is not empty %}
+
+	
+	{{ responses|join("\n\t") }}
+		{% endif %}
+
+</head>
+<body class="body scrollable" style="margin: 0px; padding: 0px; background: transparent;">
+	<div class="background" style="background-image: url('{{ baseurl }}/index/background');"></div>
+	
+	<!-- Auto-updating popup -->
+	<div class="auto-updating"><p>Updating...</p></div>
+	
+	<div class="progress"></div>
+	
+	<div class="page">
+		{% if "auth" in config.controllers|keys %}<!-- User / Login -->
+		<div class="user login" data-ajaxify="user">
+			{% set user = application.authentication.user %}
+			<script>
+				window.user = {{ user.get|json_encode|raw }} || {};
+			</script>
+			{% if user.valid %}
+				<img src="{{ user.response.picture }}" alt="Profile Picture" style=" float: right; width: 60px; height: 60px; margin: -10px; margin-left: 10px; margin-bottom: 10px; " />
+				<p style=" word-wrap: break-word; "><b>{{ user.name }}</b></p>
+				<p>
+					<a href="{{ baseurl }}/account">Account</a>
+					<a href="javascript:$.fancybox.open({ type: 'ajax', href: '{{ baseurl }}/auth/logout' });">Logout</a>
+					{% if user.username in config.controlpanel.admins %}
+						<a href="{{ baseurl }}/control-panel">Control Panel</a>
+					{% endif %}
+				</p>
+			{% else %}
+				<img src="https://gravatar.com/avatar/?size=60&amp;default=mm&amp;rating=g" alt="Profile Picture" style=" float: right; width: 60px; height: 60px; margin: -10px; margin-left: 10px; padding-bottom: 10px; " />
+				<p style=" word-wrap: break-word; "><b><i>Not logged in</i></b></p>
+				<p><a href="{{ baseurl }}/auth/login?next={{ (baseurl ~ "/" ~ request.action)|trim("/")|url_encode }}">Login / Signup</a></p>
+			{% endif %}
+		</div>
+		
+		{% endif %}<!-- Header / Sidebar -->
+		<div class="header" data-ajaxify="header">
+			<!-- Header Background -->
+			<div class="header-background"></div>
+			
+			<!-- Header -->
+			{% if config.template_logo != null %}
+				<img src="{{ baseurl }}/index/logo"{% if config.template_show_title != true %} alt="{{ config.title }}"{% endif %} />
+			{% else %}
+				<span style=" margin-left: 5px; "></span>
+			{% endif %}
+			{% if config.template_show_title == true %}
+				<h2 class="title" style="margin: 0px; padding: 5px 0px; min-width: 1px;">{{ config.template_show_title == true ? config.title : "" }}</h2>
+			{% else %}
+				<h2 class="no-sidebar" style="padding: 0px; min-width: 1px; opacity: 0;">&nbsp;</h2>
+			{% endif %}
+			{% if config.template_show_description == true %}
+				<p class="description">{{ config.description }}</p>
+			{% endif %}
+			
+			{# Trigger the render_header event #}
+			{% set responses = application.events.triggerR("render_header") %}
+			{% if responses is not empty %}
+
+			
+			{{ responses|join("\n\t\t\t") }}
+			{% endif %}
+
+			
+			<!-- Navigation -->
+			<ul class="navigation navigation-mobile"><li><a onclick="$('.navigation-overlay, .navigation-container').fadeIn();"><span class="ui-icon ui-icon-blank" style="display: inline-block;"></span> Navigation</a></li></ul>
+			<div class="navigation-overlay" onclick="$('.navigation-overlay, .navigation-container').fadeOut(400, function() { $('.navigation-overlay, .navigation-container').attr('style', ''); });"></div>
+			<nav class="navigation-container">
+				<ul class="navigation">
+					{% set items = config.navigation %}
+					{% if items is callable %}
+						{% set items = items|call %}
+					{% endif %}
+				{% for item in items %}{% if item is not null %}
+
+					<li{{ item.active == true ? " class=\"active\"" : "" }}>
+						<p>
+							{% if item.icon is string %}
+								<span class="ui-icon {{ item.icon is not empty ? item.icon : "ui-icon-blank" }}"></span>
+							{% endif %}
+							{% if item.href|strpos("javascript:") == 0 or item.href|filter_var(constant("FILTER_VALIDATE_URL")) %}
+								<a href="{{ item.href }}">
+							{% else %}
+								<a href="{{ application.getBaseURL() ~ item.href }}">
+							{% endif %}{{ item.label }}</a>
+						</p>{% if item.items is array and item.items is not empty %}<ul>
+							{% for item2 in item.items %}{% if item2 is not null %}<li>
+								<p>
+									{% if item.icon is string %}
+										<span class="ui-icon {{ item2.icon != "" ? item2.icon : "ui-icon-blank" }}"></span>
+									{% endif %}
+									{% if item2.href is not null %}
+										{% if "javascript:"|strpos(item2.href) == 0 or item2.href|filter_var(constant("FILTER_VALIDATE_URL")) %}
+											<a href="{{ item2.href }}">
+										{% else %}
+											<a href="{{ application.getBaseURL() ~ item2.href }}">
+										{% endif %}
+									{% endif %}{{ item2.label }}
+									{% if item2.href is not null %}</a>{% endif %}
+
+								</p>
+							</li>{% endif %}{% endfor %}
+						</ul>{% endif %}
+					</li>{% endif %}{% endfor %}
+					
+					{% if config.errors == true and config.template_css_file == "/static/themes/default/scss/default.scss" %}<li class="group">
+						<p><span class="ui-icon ui-icon-gear"></span> Theme</p>
+						<ul>
+							<li><p><span class="ui-icon ui-icon-gear"></span> <a href="javascript:$('html').toggleClass('sidebar');">Sidebar</a></p></li>
+							<li><p><span class="ui-icon ui-icon-gear"></span> <a href="javascript:$('html').toggleClass('dark');">Dark</a></p></li>
+						</ul>
+					</li>
+					
+					{% endif %}<li class="navigation-mobile group"><a href="javascript:$('.navigation-overlay, .navigation-container').fadeOut(400, function() { $('.navigation-overlay, .navigation-container').attr('style', ''); });"><span class="ui-icon ui-icon-close"></span> Close</a></li>
+				</ul>
+			</nav>{# Trigger the render_navigation event #}
+			{% set responses = application.events.triggerR("render_navigation") %}
+			{% if responses is not empty %}
+
+			
+			{{ responses|join("\n\t\t\t") }}
+			{% endif %}
+
+		</div>
+		
+		<!-- Page Content -->
+		<!-- Page Scripts -->
+		<script id="page-scripts">
+			window.request = {{ {
+				controller: application.getController(), controllerurl: application.getControllerURL(),
+				action: application.getAction, actioninfo: application.getActionInfo,
+				query: request.query, post: request.post, cookie: request.cookie,
+				application: application
+			}|json_encode|raw }};
+			
+			{% if request.query.scrollto %}$(document).ready(function() {
+				var element = $("#content #{{ request.query.scrollto }}, #content .{{ request.get.scrollto }}").filter(":first");
+				if(typeof element[0] == "undefined") var element = $("#content .{{ request.get.scrollto }}").filter(":first");
+				if(typeof element[0] != "undefined")
+				$("html, body").animate({ scrollTop: element.offset().top }, "slow");
+			});{% endif %}
+		
+		</script>
+		
+		<div class="article" id="content" data-ajaxify="content">
+			{% if application.getMessages is not empty %}
+				<div class="content messages" style="min-height: 0px;">
+					{% for message in application.getMessages %}
+						<p style="margin-top: 5px;"><span class="ui-icon {% if message.type == "success" %}ui-icon-check{% elseif message.type == "error" %}ui-icon-notice{% else %}ui-icon-flag{% endif %}"></span> {{ message.message|striptags|parsedown_line }}</p>
+					{% endfor %}
+				</div>
+			{% endif %}
+			
+			<!-- Page Content -->
+			{% block content %}{% endblock %}
+			
+			<!-- Footer -->
+			<div class="footer">
+				<!--<p>Copyright &copy; <?php echo date("Y"); ?> Samuel Elliott</p>-->
+				<p>{{ config.footer_text|raw }}</p>
+				<p><a href="javascript:$('html, body').animate({ scrollTop: 0 }, 'slow')">Top</a> <a href="javascript:$(window).trigger('statechange')">Refresh</a></p>
+				{% if config.errors == true %}
+					<p><br /></p>
+					<p>Controller: {{ application.getController() }}</p>
+					<p>Controller URL: {{ application.getControllerURL() }}</p>
+					<p>Action: {{ application.action }}</p>
+					<p>Action Info: {{ application.actioninfo|join("/") }}</p>
+					<p>View: {{ application.view.view }}</p>
+				{% endif %}
+				{% if "Asteroid\\Libraries\\Asteroid" in config.libraries %}
+					<p><br /></p>
+					<p><a href="{{ application.generateURL("asteroid") }}">About Asteroid</a></p>
+				{% endif %}
+			</div>
+		</div><!-- End of content wrapper -->
+		
+		<!-- Javascript -->
+		<noscript>
+			<!-- <div style="z-index: 99; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8);"></div> -->
+			<div style="z-index: 10000000; width: calc(100% - 20px); border: 0px none; background-color: #000000; position: fixed; bottom: 0px; left: 0px; padding: 10px; color: #ffffff; box-shadow: 0px -5px 20px #000000;">
+				<p>JavaScript is not enabled in your browser. If you don't enable JavaScript, you will not be able to browse some parts of this website.</p>
+			</div>
+		</noscript>
+	</div><!-- End of page -->
+	
+	<!-- jQuery 1.11.1 & jQuery UI 1.11.1 -->
+	<script src="{{ application.getCDNURL("jquery/1.11/jquery.min.js") }}"></script>
+	<script src="{{ application.getCDNURL("jquery/1.11/jquery-ui.min.js") }}"></script>
+	
+	<!-- Scripts -->
+	<script src="{{ application.getCDNURL("js/banner.js") }}"></script>
+	<script src="{{ application.getCDNURL("js/form.js") }}"></script>
+	<script type="text/javascript">document.documentElement.className += " js";</script>
+	
+	{% if config.template_ajaxify == true %}
+		<!-- Ajaxify -->
+		<script src="{{ application.getCDNURL("ajaxify/ajaxify.js") }}"></script>
+	{% endif %}
+	
+	<!-- Fancybox -->
+	<!-- Add mousewheel plugin (this is optional) -->
+	<script src="{{ application.getCDNURL("fancybox/2.1/lib/jquery.mousewheel-3.0.6.pack.js") }}" type="text/javascript"></script>
+	<!-- Add fancyBox -->
+	<script src="https://samuelthomas.ml/static/fancybox/source/jquery.fancybox.pack.js?v=2.1.5" type="text/javascript"></script>
+	<!-- Optionally add helpers - button, thumbnail and/or media -->
+	<script src="{{ application.getCDNURL("fancybox/2.1/source/helpers/jquery.fancybox-buttons.js?v=1.0.5") }}" type="text/javascript"></script>
+	<script src="{{ application.getCDNURL("fancybox/2.1/source/helpers/jquery.fancybox-media.js?v=1.0.6") }}" type="text/javascript"></script>
+	<script src="{{ application.getCDNURL("fancybox/2.1/source/helpers/jquery.fancybox-thumbs.js?v=1.0.7") }}" type="text/javascript"></script>
+	
+	<!-- Highlight.js -->
+	<script src="https://samuelthomas.ml/static/highlight/highlight.pack.js"></script>
+	<script>
+		// Add the $().highlight() function
+		$.fn.highlight = function() {
+			$(this).each(function(i, block) {
+				hljs.highlightBlock(block);
+			});
+		}; $(document).ready(function() {
+			$("#content .content pre > code").highlight();
+		});
+	</script>
+	
+	{% if config.template_emoji == true %}
+		<!-- Emoji -->
+		<script src="https://samuelthomas.ml/static/emoji/jquery.emoji.js"></script>
+	{% endif %}
+	
+	<!-- Context Menu -->
+	<script src="{{ application.getCDNURL("js/context-menu.js") }}"></script>
+	
+	<script>
+		$.request = function(v) {
+			if(v == undefined) return window.request;
+			else if(v == "query") return window.request.query;
+			else if(v == "get") return window.request.query;
+			else if(v == 1) return window.request.query;
+			else if(v == "post") return window.request.post;
+			else if(v == 2) return window.request.post;
+			else if(v == "cookie") return window.request.cookie;
+			else if(v == 3) return window.request.cookie;
+			else return window.request;
+		}; $.request.get = function() {
+			return window.request.query;
+		}; $.request.query = function() {
+			return window.request.query;
+		}; $.request.post = function() {
+			return window.request.post;
+		}; $.request.cookie = function() {
+			return window.request.cookie;
+		}; $(document).ready(function() {
+			// .emoji(). Replaces text like :smile: with <img /> tags like <img ... src="...smile.png" ... />
+			// .ajaxify(). Makes links push a new state, loading the page with ajax.
+			$("#content"){% if config.template_emoji == true %}.emoji(){% endif %}{% if config.template_ajaxify == true %}.ajaxify(){% endif %};
+		});
+	</script>
+	
+	{# Trigger the render_body event #}
+	{% set responses = application.events.triggerR("render_body") %}
+	{% if responses is not empty %}
+	
+	{{ responses|join("\n\t") }}
+	{% endif %}
+</body>
+</html>
+{% endspaceless %}

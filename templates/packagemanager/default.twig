@@ -1,0 +1,134 @@
+{% spaceless %}<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+	
+	<title>{% if title != "" %}{{ title }} - {% endif %}Package Manager - {{ config.title }}</title>
+	<link rel="stylesheet" type="text/css" href="{{ application.getCDNURL("2.0/package-manager/default.min.scss") }}" />
+	
+	<!--[if lt IE 9]>
+		<script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+		<script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+	<div class="container" style="padding: 15px 0px 5px;">
+		<p>Asteroid Package Manager is in development - some features may not work yet!</p>
+	</div>
+	
+	<nav class="navbar navbar-inverse navbar-static-top" data-ajaxify="navbar" data-stickyfix="">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="{{ application.generateURL("packages") }}"><span class="glyphicon glyphicon-cog" style="vertical-align: top;"></span> &nbsp; <span style="vertical-align: bottom;">Package Manager</span></a>
+			</div>
+			<div class="navbar-collapse collapse" id="navbar">
+				<p class="navbar-text">Asteroid Package Manager</p>
+				<ul class="nav navbar-nav">
+					{% if permission is not false %}<li class="dropdown">
+						<a class="dropdown-toggle no-ajaxy" href="{{ application.generateURL("packages", "upload") }}" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="glyphicon glyphicon-plus"></span> Install</a>
+						<ul class="dropdown-menu">
+							<li><a href="#" data-toggle="modal" data-target="#uploadmodal"><span class="glyphicon glyphicon-hdd"></span> Upload</a></li>
+							<li><a href="#" data-toggle="modal" data-target="#urlmodal"><span class="glyphicon glyphicon-globe"></span> URL</a></li>
+						</ul>
+					</li>{% endif %}
+				</ul>
+				<ul class="nav navbar-nav navbar-right">
+					<li><a class="no-ajaxy" href="{{ application.generateURL("index") }}"><span class="glyphicon glyphicon-arrow-left"></span> Back to {{ config.title }}</a></li>
+					<li><a class="no-ajaxy" href="{{ application.generateURL("account") }}">Account</a></li>
+				</ul><!-- /.navbar-nav -->
+			</div><!-- /.navbar-collapse -->
+		</div><!-- /.container-fluid -->
+	</nav><!-- /.navbar -->
+	
+	<div class="container"><div class="row">
+		<div class="col-md-9" data-ajaxify="content" style="background-color: #ffffff; padding-bottom: 15px;">
+			<div class="container-fluid messages" data-ajaxify="messages" style="margin-top: 20px;">{% for message in application.getMessages() %}
+					<div class="alert alert-{% if message.type == "success" %}success{% elseif message.type == "neutral" %}info{% elseif message.type == "error" %}danger{% elseif message.type == "warning" %}warning{% endif %} alert-dismissable">
+						<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						{{ message.message|raw|parsedown_line }}
+					</div>
+				{% endfor %}</div>
+			{% block content %}{% endblock %}
+		</div>
+		
+		<div class="col-md-3" data-ajaxify="sidebar">
+			<div class="ajax-progress" style="margin: 10px 0px 0px;">
+				<div class="progress">
+					<div class="progress-bar progress-bar-striped active" style="width: 100%;"></div>
+				</div>
+			</div>
+			
+			<div style="margin-bottom: 10px;"></div>
+			
+			{% if application.authentication.loggedin %}<div class="panel panel-primary">
+				<h4 class="panel-heading panel-title">User</h4>
+				<div class="panel-body">
+					{% set user = application.authentication.user %}
+					<h4 style="margin: 0px;">{{ user.name }}{% if permission is false %} <span class="label label-default">Unauthorised</span>{% endif %}</h4>
+					<p><a class="no-ajaxy" href="{{ application.generateURL("account") }}">Account</a>&nbsp;<a class="no-ajaxy" href="{{ application.generateURL("auth", "logout") }}">Logout</a></p>
+				</div>
+			</div>{% else %}<div class="panel panel-primary">
+				<h4 class="panel-heading panel-title">User</h4>
+				<div class="panel-body">
+					<h4 style="margin: 0px;">Not logged in</h4>
+					<p><a class="no-ajaxy" href="{{ application.generateURL("auth", "login") }}">Login</a></p>
+				</div>
+			</div>{% endif %}{% if permission is not false %}
+			
+			<div class="panel panel-default">
+				<h4 class="panel-heading panel-title">Sidebar</h4>
+				<p class="panel-body">Lol</p>
+			</div>{% endif %}
+		</div>
+	</div></div>
+	
+	<div class="footer">
+		<div class="container">
+			<p class="text-muted">Copyright &copy; 2015 Samuel Elliott - <a href="javascript:$(window).trigger('statechange');">Refresh</a> - <a href="javascript:window.location.reload();">Reload</a> - <a href="javascript:window.location.reload(true);">Force Refresh</a> - <a href="javascript:$('html, body').animate({ scrollTop: 0 });">Scroll to Top</a></p>
+		</div>
+	</div>
+	
+	{% if permission is not false %}<div class="modal fade" id="uploadmodal" tabindex="-1" role="dialog"><div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<iframe src="{{ application.generateURL("packages", "upload") }}"></iframe>
+		</div><!-- /.modal-content -->
+	</div></div><!-- /.modal -->
+	
+	<div class="modal fade" id="urlmodal" tabindex="-1" role="dialog"><div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title">Install from URL</h4>
+			</div>
+			<div class="modal-body">
+				<form class="form-horizontal" id="urlmodal_form" action="{{ application.generateURL("packages", "url") }}" method="post">
+					<div class="form-group">
+						<label class="control-label col-sm-2" for="urlmodal_url">URL</label>
+						<div class="col-sm-10">
+							<input class="form-control" id="urlmodal_url" type="text" name="url" value="" placeholder="https://mywebsite.com/mypackage/package.astp" />
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+				<button class="btn btn-primary" type="submit" form="urlmodal_form"><span class="glyphicon glyphicon-arrow-down"></span> Download and Install Package</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div></div><!-- /.modal -->{% endif %}
+	
+	<script src="{{ application.getCDNURL("jquery/1.11/jquery.min.js") }}"></script>
+	<script src="{{ application.getCDNURL("bootstrap/3.3/dist/js/bootstrap.min.js") }}"></script>
+	<script src="{{ application.getCDNURL("ajaxify/ajaxify.js") }}"></script>
+	<script src="{{ application.getCDNURL("js/stickyfix.js") }}"></script>
+</body>
+</html>
+{% endspaceless %}

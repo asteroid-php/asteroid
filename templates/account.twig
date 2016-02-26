@@ -1,0 +1,24 @@
+{% extends "default" %}
+{% block content %}
+	<div class="content cover" style="background-image: url('{{ user.response.background }}');">
+		<p class="photo"><img src="{{ user.response.picture }}&amp;size=200" /></p>
+		<h1>{{ user.name|substr(0, 40) }}</h1>
+	</div>
+	<div class="content">
+		<table class="no-border"><tbody>
+			<tr>
+				<td>Username</td>
+				<td>{{ user.username }}</td>
+				<td>You cannot change your username.</td>
+			</tr><tr>
+				<td>Name</td>
+				<td>{{ user.name }}</td>
+				<td><a href="https://samuelthomas.ml/account" target="_blank"><button class="button">Edit</button></a></td>
+			</tr><tr>
+				<td>Primary Email Address</td>
+				<td>{% if user.email is string %}{{ user.email }}{% else %}<i>Unknown</i>{% endif %}</td>
+				<td><a href="https://samuelthomas.ml/account" target="_blank"><button class="button">Edit</button></a></td>
+			</tr>
+		</tbody></table>
+	</div>
+{% endblock %}

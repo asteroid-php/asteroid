@@ -1,0 +1,76 @@
+{% extends "default" %}
+{% block content %}
+	<div class="content">
+		<h2>Contact</h2>
+		<table class="no-border"><tbody>
+			<tr>
+				<td style="width: 200px;">Website</td>
+				<td style="width: calc(100% - 200px);">
+					<a href="{{ baseurl }}/"><button class="button" type="button">Visit Website</button></a>
+					<p>{{ baseurl }}</p>
+				</td>
+			</tr><tr>
+				<td>Email</td>
+				<td>
+					<a href="mailto:{{ application.configuration.controller.email is string ? application.configuration.controller.email : server.SERVER_ADMIN }}"><button class="button" type="button">Send Email</button></a>
+					<p>{{ application.configuration.controller.email is string ? application.configuration.controller.email : server.SERVER_ADMIN }}</p>
+				</td>
+			</tr>{% if application.configuration.controller.facebook_url is string %}<tr>
+				<td>Facebook</td>
+				<td>
+					<a href="https://facebook.com/{{ application.configuration.controller.facebook_url|url_encode }}"><button class="button" type="button">Visit Facebook Page</button></a>
+					{% if application.configuration.controller.facebook_name is string %}
+						<p>{{ application.configuration.controller.facebook_name }}</p>
+						{% endif %}
+				</td>
+			</tr>{% endif %}{% if application.configuration.controller.twitter_url is string %}<tr>
+				<td>Twitter</td>
+				<td>
+					<a href="https://twitter.com/{{ application.configuration.controller.twitter_url|url_encode }}"><button class="button" type="button">Visit Twitter Page</button></a>
+					{% if application.configuration.controller.twitter_name is string %}
+						<p>{{ application.configuration.controller.twitter_name }}</p>
+					{% endif %}
+				</td>
+			</tr>{% endif %}{% if application.configuration.controller.telephone is numeric %}<tr>
+				<td>Phone</td>
+				<td>
+					<a href="tel:{{ application.configuration.controller.telephone }}"><button class="button" type="button">Call</button></a>
+					<p>{{ (config.telephone|substr(0, 1) != "0" ? "+" : "") ~ config.telephone }}</p>
+				</td>
+			</tr>{% endif %}{% if application.configuration.controller.mobile is numeric %}<tr>
+				<td>Mobile</td>
+				<td>
+					<a href="tel:{{ application.configuration.controller.mobile }}"><button class="button" type="button">Call</button></a>
+					<p>{{ (config.mobile|substr(0, 1) != "0" ? "+" : "") ~ config.mobile }}</p>
+				</td>
+			</tr>{% endif %}{% if application.configuration.controller.terms_text is string %}<tr>
+				<td>Terms of Service</td>
+				<td><a href="{{ application.generateURL(application.getControllerURL(), "terms") }}"><button class="button" type="button">View Terms of Service</button></a></td>
+			</tr>{% endif %}{% if application.configuration.controller.privacy_text is string %}<tr>
+				<td>Privacy</td>
+				<td><a href="{{ application.generateURL(application.getControllerURL(), "privacy") }}"><button class="button" type="button">View Privacy Policy</button></a></td>
+			</tr>{% endif %}
+		</tbody></table>
+	</div>
+	<div class="content">
+		<form action="javascript:" onsubmit="submitForm(this)" data-action="{{ application.generateURL(application.getControllerURL(), "contact", "save") }}" data-next="{{ application.generateURL(application.getControllerURL()) }}">
+			<table class="no-border"><tbody>
+				<tr>
+					<td style="width: 200px;"><label for="name">Name</label></td>
+					<td style="width: calc(100% - 200px);"><input class="text" type="text" name="name" placeholder="Your name." /></td>
+				</tr><tr>
+					<td><label for="contact">Email / Phone</label></td>
+					<td><input class="text" type="text" name="contact" placeholder="Your email address or phone number." /></td>
+				</tr><tr>
+					<td>Message</td>
+					<td><textarea class="text-area" name="message"></textarea></td>
+				</tr>
+				
+				<tr>
+					<td></td>
+					<td><button class="button" type="submit">Save</button></td>
+				</tr>
+			</tbody></table>
+		</form>
+	</div>
+{% endblock %}

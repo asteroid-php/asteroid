@@ -1,0 +1,6 @@
+{% extends "default" %}
+{% block content %}
+	{% if application.getMessages() is empty %}
+		<div class="content"></div>
+	{% endif %}
+{% endblock %}

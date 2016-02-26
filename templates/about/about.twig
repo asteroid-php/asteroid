@@ -1,0 +1,30 @@
+{% extends "default" %}
+{% block content %}
+	<div class="content">
+		<h2>About</h2>
+		{{ about|parsedown }}
+	</div>
+	<div class="content">
+		<a href="{{ application.generateURL(application.getControllerURL(), "contact") }}" style=" margin-top: -10px; margin-right: -10px; float: right; "><button class="button" type="button">Contact</button></a>
+		<h2 style=" height: 30px; ">Contact</h2>
+		<form action="javascript:" onsubmit="submitForm(this)" data-action="{{ application.generateURL(application.getControllerURL(), "contact", "save") }}" data-next="" method="post">
+			<input class="text" type="text" name="name" placeholder="Name" value="{{ application.authentication.user.name }}" required="required" style=" width: calc(35% - 34px); " maxlength="255" />
+			<input class="text" type="email" name="contact" placeholder="Email / Phone" value="{{ application.authentication.user.email }}" required="required" style=" width: calc(65% - 34px); " maxlength="255" /><br />
+			<textarea class="text-area" name="message" placeholder="Message" required="required" style=" width: calc(100% - 32px); resize: vertical; " maxlength="1500"></textarea><br />
+			<button class="button" type="submit">Submit</button>
+		</form>
+		<hr />
+		<p>Email: {% if config.controller.email is string %}<a href="mailto:{{ config.controller.email }}" target="_blank">{{ config.controller.email }}</a>{% else %}<a href="mailto:{{ server.SERVER_ADMIN }}" target="_blank">{{ server.SERVER_ADMIN }}</a>{% endif %}<br />Website: <a href="{{ baseurl }}/">{{ baseurl }}</a></p>
+		<p>{% if config.telephone is numeric %}Phone: {{ (config.telephone|substr(0, 1) != "0" ? "+" : "") ~ config.telephone }}<br />{% endif %}{% if config.mobile is numeric %}Mobile: {{ (config.telephone|substr(0, 1) != "0" ? "+" : "") ~ config.telephone }}<br />{% endif %}</p>
+	</div>
+	{% if config.terms_text is string or config.privacy_text is string %}
+		<div class="content">
+			{% if config.terms_text is string %}
+				<a href="{{ application.generateURL(application.getControllerURL(), "terms") }}"><button class="button">Terms of Service</button></a>
+			{% endif %}
+			{% if config.privacy_text is string %}
+				<a href="{{ application.generateURL(application.getControllerURL(), "privacy") }}"><button class="button">Privacy Policy</button></a>
+			{% endif %}
+		</div>
+	{% endif %}
+{% endblock %}

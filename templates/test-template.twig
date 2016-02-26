@@ -1,0 +1,43 @@
+{% do application.success("This is a success message!") %}
+{% do application.message("This is a neutral message!") %}
+{% do application.error("This is an error message!") %}
+{% extends "default" %}
+{% block content %}
+	<div class="content">
+		<h2>Title</h2>
+		<h3>Subtitle</h3>
+		<p>A paragraph.</p>
+		<p>
+			<b>B</b> <i>I</i> <u>U</u> <s>S</s><br />
+			<b><i>BI</i> <u>BU</u> <s>BS</s></b><br />
+			<i><u>IU</u> <s>IS</s></i><br />
+			<u><s>US</s></u><br />
+			<b><i><u>BIU</u><s>BIS</s></i></b><br />
+			<b><u><s>BUS</s></u></b><br />
+			<i><u><s>IUS</s></u></i><br />
+			<b><i><u><s>BIUS</s></u></i></b>
+		</p>
+		<p><button>A button</button> <button class="button">A button with the button class</button> <button class="btn">A button with the btn class</button> <button class="btn btn-default">A button with the btn and btn-default classes</button></p>
+		<p><input type="text" placeholder="An input field." /></p>
+		<p><input class="text" type="text" placeholder="An input field with the text class." /></p>
+		<p><input class="text" type="password" placeholder="A password field with the text class." /></p>
+		<p><input class="text" type="email" placeholder="An invalid input field with the text class. Type a valid email address to see this become valid." required="required" /></p>
+		<p>
+			<input class="checkbox" type="radio" name="radio-1" /> A radio control with the checkbox class.<br />
+			<input class="checkbox" type="radio" name="radio-1" /> A radio control with the checkbox class.
+		</p>
+		<p><input class="checkbox" type="checkbox" /> A checkbox control with the checkbox class.</p>
+		<table><tbody>
+			<tr><td>A table.</td><td colspan="3">lol</td></tr>
+			<tr><td colspan="4">A table.</td></tr>
+			<tr><td>A table.</td><td colspan="2">2</td><td>3</td></tr>
+			<tr><td>A table.</td><td>2</td><td><input class="text" placeholder="An input field in a table." /></td><td>4</td></tr>
+		</tbody></table>
+		<table class="table"><tbody>
+			<tr><td>A table with the table class.</td><td colspan="3">lol</td></tr>
+			<tr><td colspan="4">A table.</td></tr>
+			<tr><td>A table.</td><td colspan="2">2</td><td>3</td></tr>
+			<tr><td>A table.</td><td>2</td><td><input class="text" placeholder="An input field in a table." /></td><td>4</td></tr>
+		</tbody></table>
+	</div>
+{% endblock %}

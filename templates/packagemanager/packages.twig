@@ -1,0 +1,22 @@
+{% extends "packagemanager/default" %}
+{% block content %}
+	<div class="container-fluid">
+		<h1>Packages</h1>
+		{% for package_directory, package in packages|toarray %}<div class="package{% if package.enabled == false %} text-muted{% endif %}">
+			{% if not loop.first %}<hr />{% endif %}
+			<div class="pull-right">
+				{% if package.enabled == false %}<span class="label label-warning">Disabled</span>&nbsp;{% endif %}
+				<div class="btn-group btn-group-sm">
+					<a class="btn btn-primary" href="{{ application.generateURL("packages", "details", package_directory) }}">Details</a>
+					{% if package.enabled == false %}<a class="btn btn-warning" href="{{ application.generateURL("packages", "enable", package_directory) }}">Enable</a>{% else %}
+					<a class="btn btn-warning" href="{{ application.generateURL("packages", "disable", package_directory) }}">Disable</a>{% endif %}
+					<a class="btn btn-danger" href="{{ application.generateURL("packages", "delete", package_directory) }}">Delete</a>
+				</div>
+			</div>
+			<h3>{{ package.name }} <small>in {{ package_directory }}</small></h3>
+			<p>{{ package.short_description is string ? package.short_description : package.description|substr(0, 100) }}</p>
+		</div>{% else %}
+			<p class="alert alert-info"><b>Info:</b> You have not installed any packages.</p>
+		{% endfor %}
+	</div>
+{% endblock %}

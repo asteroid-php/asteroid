@@ -1,0 +1,28 @@
+{
+	"name": "asteroid/asteroid",
+	"description": "",
+	"homepage": "https://asteroid.ml",
+	"version": "2",
+	"authors": [
+		{
+			"name": "Samuel Elliott",
+			"homepage": "https://github.com/samuelthomas2774",
+			"role": "developer"
+		}
+	],
+	"support": {
+		"email": "support@asteroid.ml",
+		"issues": "https://github.com/asteroid-php/asteroid/issues",
+		"wiki": "https://github.com/asteroid-php/asteroid/wiki",
+		"source": "https://github.com/asteroid-php/asteroid",
+		"docs": "https://asteroid.ml/documentation"
+	},
+	"require": {
+		"samuelthomas2774/oauth-client": "*",
+		"erusev/parsedown": "*",
+		"twig/twig": "*"
+	},
+	"autoload": {
+		"files": [ "application/autoloader.class.php" ]
+	}
+}

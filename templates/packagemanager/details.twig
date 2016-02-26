@@ -1,0 +1,45 @@
+{% extends "packagemanager/default" %}
+{% block content %}
+	<div class="container-fluid">
+		<div class="pull-right" style="margin-top: 20px;">
+			{% if package.get([ "enabled" ]) == false %}<span class="label label-warning">Disabled</span>&nbsp;{% endif %}
+			<div class="btn-group">
+				{% if package.get([ "enabled" ]) == false %}<a class="btn btn-warning" href="{{ application.generateURL("packages", "enable", package_directory) }}">Enable</a>{% else %}
+				<a class="btn btn-warning" href="{{ application.generateURL("packages", "disable", package_directory) }}">Disable</a>{% endif %}
+				<a class="btn btn-danger" href="{{ application.generateURL("packages", "delete", package_directory) }}">Delete</a>
+			</div> &nbsp;
+			<a href="{{ application.generateURL("packages") }}"><span class="glyphicon glyphicon-arrow-left"></span> Packages</a>
+		</div>
+		
+		<h1 style="margin-bottom: 0px;">{{ package.get([ "name"]) }}</h1>
+		<h2 style="margin-top: 0px;"><small>{{ package.get([ "id" ]) }}</small></h2>
+		
+		{% if package.get([ "description" ]) is string and package.get([ "description" ])|length > 0 %}
+			<div class="description">{{ package.get([ "description" ])|parsedown }}</div>
+		{% endif %}
+		
+		<div class="row">
+			<div class="col-sm-3 col-md-2 text-right text-muted">Directory</div>
+			<div class="col-sm-9 col-md-10">{{ package_directory }}</div>
+		</div>
+		<div class="row">
+			<div class="col-sm-3 col-md-2 text-right text-muted">Version</div>
+			<div class="col-sm-9 col-md-10">{{ package.get([ "version" ]) }}</div>
+		</div>
+		<div class="row">
+			<div class="col-sm-3 col-md-2 text-right text-muted">Updater URL</div>
+			<div class="col-sm-9 col-md-10">{{ package.get([ "update_url" ]) }}</div>
+		</div>
+		
+		<h4>Configuration</h4>
+		{% if package_configuration is empty and package.get([ "setup_controller" ]) is string %}
+			<p class="alert alert-info">Go to <a class="alert-link no-ajaxy" href="{{ application.generateURL(package.get([ "setup_controller" ])) }}">{{ application.generateURL(package.get([ "setup_controller" ])) }}</a> to setup this package, or paste your configuration file below.</p>
+		{% endif %}
+		<form action="{{ application.generateURL("packages", "configuration", package_directory) }}" method="post">
+			<div class="form-group">
+				<textarea class="form-control" name="configuration" style="resize: vertical; min-height: 200px; max-height: 500px;">{{ package_configuration }}</textarea>
+			</div>
+			<div class="form-group clearfix"><button class="btn btn-primary pull-right" type="submit">Save</button></div>
+		</form>
+	</div>
+{% endblock %}
