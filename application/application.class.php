@@ -225,8 +225,8 @@
 			// Get the url from ?url, ?action, /path-info or /request-uri
 			if(is_string($parameter = $this->configuration([ "parameter" ])) && isset($_GET[$parameter]) && is_string($_GET[$parameter])) return $_GET[$parameter];
 			elseif(isset($_GET["action"]) && is_string($_GET["action"])) return $_GET["action"];
-			elseif(isset($_SERVER["PATH_INFO"]) && (strlen($_SERVER["PATH_INFO"]) > 1)) return substr($_SERVER["PATH_INFO"], 1);
-			else return substr($_SERVER["REQUEST_URI"], 1);
+			elseif(isset($_SERVER["PATH_INFO"]) && (strlen($_SERVER["PATH_INFO"]) > 1)) return explode("?", substr($_SERVER["PATH_INFO"], 1))[0];
+			else return explode("?", substr($_SERVER["REQUEST_URI"], 1))[0];
 		}
 		
 		// function parseURL(): Parses a url and sets the controller, action and action info from it
