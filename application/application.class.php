@@ -325,7 +325,7 @@
 		
 		// function getCDNURL(): Returns the url of a file on cdn.asteroid.ml
 		public function getCDNURL($file = "") {
-			foreach($this->application->events()->triggerR("get_cdn_url", Array($file)) as $return) {
+			foreach($this->events()->triggerR("get_cdn_url", Array($file)) as $return) {
 				if(is_string($return))
 					return $return;
 				elseif($return === false)
