@@ -325,7 +325,14 @@
 		
 		// function getCDNURL(): Returns the url of a file on cdn.asteroid.ml
 		public function getCDNURL($file = "") {
-			return "https://cdn.asteroid.ml/" . trim($file, "/");
+			foreach($this->application->events()->triggerR("get_cdn_url", Array($file)) as $return) {
+				if(is_string($return))
+					return $return;
+				elseif($return === false)
+					return false;
+			}
+			
+			return rtrim($this->configuration([ "cdn", "url" ]), "/") . "/" . trim($file, "/");
 		}
 		
 		// function getVersion(): Returns the current version number

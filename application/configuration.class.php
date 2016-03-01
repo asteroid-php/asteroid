@@ -27,6 +27,10 @@
 			$this->https = $this->ssl; // This should be true if SSL should be used
 			$this->errors = true;
 			
+			// CDN configuration
+			$this->cdn = new stdClass();
+			$this->cdn->url = "https://cdn.asteroid.ml";
+			
 			// Default views, for php views these should all be the name of a view
 			// For twig views these (except extends, index and string) should be null (in twig views should extend from a master view)
 			$this->template_extends = "theme-default/default"; // The twig file views that extend from "default" extend from this
