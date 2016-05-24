@@ -183,6 +183,40 @@
 			else return false;
 		}
 		
+		// function subcontroller(): Lets an action use another controller
+		public function subcontroller($controller, $configuration = null, $action_info_include = 0, $variables = Array()) {
+			if(!is_string($controller))
+				throw new Exception(__METHOD__, "\$controller must be a string containing an existing class.");
+			
+			if(is_array($configuration))
+				$configuration = (object)$configuration;
+			if(!is_object($configuration))
+				$configuration = $this->configuration->controller();
+			
+			$oldcontroller = $this->getControllerURL();
+			$newcontroller = $this->getControllerURL() . "/" . $this->getAction();
+			if(count($this->getActionInfo()) >= 1)
+				$newaction = $this->getActionInfo(1);
+			else $newaction = "index";
+			$newactioninfo = array_slice($this->getActionInfo(), 1);
+			
+			for($i = 0; $i < $action_info_include; $i++) {
+				$newcontroller = $newcontroller . "/" . $newaction;
+				if(count($newactioninfo) >= 1)
+					$newaction = $newactioninfo[0];
+				else $newaction = "index";
+				$newactioninfo = array_slice($newactioninfo, 1);
+			}
+			
+			$this->url_controller = $newcontroller;
+			$this->url_action = $newaction;
+			$this->url_action_info = $newactioninfo;
+			
+			$this->configuration->controller($newcontroller, $controller, $configuration);
+			
+			return $this->controller()->loadFromURL($newcontroller, $newaction, $newactioninfo, $variables);
+		}
+		
 		// function database(): Connects to and returns a database
 		public function database($name = "default") {
 			if(!is_object($this->databases)) $this->databases = new Object();

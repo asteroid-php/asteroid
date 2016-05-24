@@ -9,6 +9,10 @@
 		public $application = null;
 		public $default_action = null;
 		public $rewrite_actions = Array();
+		public $subcontrollers = Array();
+		public $subcontroller_variables = Array();
+		public $parent = null;
+		public $action_swap = Array();
 		
 		public function __construct() {
 			
