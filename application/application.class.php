@@ -17,6 +17,8 @@
 		protected $session = null;
 		protected $filesystem = null;
 		
+		protected $definitions = Array();
+		
 		protected $databases = null;
 		protected $libraries = Array();
 		protected $messages = Array();
@@ -122,6 +124,63 @@
 		// function filesystem(): Gets the filesystem object
 		public function filesystem($directory = null) {
 			return new Filesystem($this, $directory);
+		}
+		
+		// function __get(): Gets a defined variable
+		public function __get($name) {
+			if(!$this->defined($name) && isset($this->{$name}))
+				return $this->{$name};
+			elseif(!$this->defined($name))
+				throw new Exception(__METHOD__, "\$name is not defined.");
+			elseif(!isset($this->definition($name)->value))
+				return null;
+			else return $this->definition($name)->value;
+		}
+		
+		// function __call(): Calls a defined function
+		public function __call($name, $parameters) {
+			if(!$this->defined($name))
+				throw new Exception(__METHOD__, "\$name is not defined.");
+			elseif(!isset($this->definition($name)->function) || !is_callable($this->definition($name)->function))
+				return null;
+			else return call_user_func_array($this->definition($name)->function, $parameters);
+		}
+		
+		// function define(): Defines a function / variable / both
+		public function define($name, $variable, $function = null) {
+			if(!is_string($name))
+				throw new Exception(__METHOD__, "\$name must be a string.");
+			if($this->defined($name))
+				throw new Exception(__METHOD__, "\$name is already defined.");
+			
+			if(($function === null) && is_callable($variable)) {
+				$function = $variable;
+				$variable = null;
+			}
+			
+			if(($function !== null) && !is_callable($function))
+				throw new Exception(__METHOD__, "\$function must be callable or null.");
+			if(($variable === null) && ($function === null))
+				throw new Exception(__METHOD__, "Either \$variable or \$function must be defined.");
+			
+			$definition = $this->definitions[$name] = new stdClass();
+			$definition->name = $name;
+			$definition->value = $variable;
+			$definition->function = $function;
+		}
+		
+		// function definition(): Gets the definition of a function / variable
+		protected function definition($name) {
+			if(isset($this->definitions[$name]))
+				return $this->definitions[$name];
+			else return null;
+		}
+		
+		// function defined(): Checks if a function / variable has been defined
+		public function defined($name) {
+			if(is_object($this->definition($name)))
+				return true;
+			else return false;
 		}
 		
 		// function database(): Connects to and returns a database
