@@ -491,5 +491,18 @@
 			if(version_compare($this->version, $version, $operator)) return true;
 			else return false;
 		}
+		
+		// function getReport(): Return information about the application
+		public function getReport($sensitive = true) {
+			$report = new stdClass();
+			$report->version = $this->getVersion();
+			
+			return $report;
+		}
+		
+		// function __debugInfo(): Returns information for the print_r and var_dump functions, so the output isn't really long and to prevent leaking configuration information - only works in PHP 5.6 or later
+		public function __debugInfo() {
+			return (array)$this->getReport(false);
+		}
 	}
 	
