@@ -5,6 +5,7 @@
 	 * Loads a controller.
 	 */
 	namespace Asteroid;
+	use ReflectionMethod;
 	class Controller {
 		protected $application = null;
 		
