@@ -297,17 +297,36 @@
 		
 		// function redirect(): Redirects to a url
 		public function redirect($url) {
+			if($this->errors())
+				$this->message("Redirecting to **" . $url . "**");
+			
 			if(strtolower($this->request()->header("X-Requested-With")) == "xmlhttprequest") {
 				if(filter_var($url, FILTER_VALIDATE_URL) && (strpos($this->getBaseURL(), $url) !== 0))
-					$this->view()->renderString("<script>$(document).ready(function() { location.replace(\"" . htmlentities($url) . "\"); });</script>");
-				else $this->view()->renderString("<script>$(document).ready(function() { History.pushState(null, null, \"" . htmlentities($url) . "\"); });</script>");
+					$this->events()->bind("render_body", function() use($url) {
+						return "<script data-ajaxify=\"\">$(document).ready(function() { location.replace(\"" . htmlentities($url) . "\"); });</script>";
+					});
+				else $this->events()->bind("render_body", function() use($url) {
+					return "<script data-ajaxify=\"\">$(document).ready(function() { if(typeof History != \"undefined\") History.pushState(null, null, \"" . htmlentities($url) . "\"); else location.replace(\"" . htmlentities($url) . "\"); });</script>";
+				});
+				
+				$this->view()->render("blank");
 			} else $this->response()->code(303)->header("Location", $url);
 			exit();
 		}
 		
 		// function redirectWithMessages(): Uses javascript to redirect to another page on this site with messages - when javascript is disabled this will simply fail and messages will be shown on the same page - this requires History.js
 		public function redirectWithMessages() {
-			$this->view()->renderString("<script>$(document).ready(function() { var messages = []; $(\".messages > *\").each(function() { messages.push({ class: $(this).attr(\"class\"), html: $(this).html() }); }); History.pushState({ messages: messages }, null, \"/" . htmlentities(call_user_func_array(Array($this, "generateRelativeURL"), func_get_args())) . "\"); });</script>");
+			$url = call_user_func_array(Array($this, "generateURL"), func_get_args());
+			$relativeurl = call_user_func_array(Array($this, "generateRelativeURL"), func_get_args());
+			
+			if($this->errors())
+				$this->message("Redirecting to **" . $relativeurl . "**");
+			
+			$this->events()->bind("render_body", function() use($url) {
+				return "<script data-ajaxify=\"\">$(document).ready(function() { var messages = []; $(\".messages > *\").each(function() { messages.push({ class: $(this).attr(\"class\"), html: $(this).html() }); }); History.replaceState({ messages: messages }, null, \"" . htmlentities($url) . "\"); });</script>";
+			});
+			
+			$this->view()->render("blank");
 		}
 		
 		// function getHostname(): Gets the hostname from the configuration
