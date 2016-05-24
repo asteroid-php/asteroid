@@ -404,7 +404,7 @@
 			$params = func_get_args();
 			foreach($params as $key => $value) {
 				if((!is_string($value) && !is_numeric($value)) || (trim($value) == "")) unset($params[$key]);
-				else $params[$key] = urlencode($value);
+				else $params[$key] = $key == 0 ? str_replace("%2F", "/", urlencode($value)) : urlencode($value);
 			} $params = array_values($params);
 			if(count($params) <= 2) return strtolower($url = preg_replace("/(\/index)*$/i", "", implode($params, "/"))) == "index" ? "" : $url;
 			else return implode($params, "/");
