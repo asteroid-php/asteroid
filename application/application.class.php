@@ -412,7 +412,8 @@
 		
 		// function message(): Adds a message to messages
 		public function message($message, $type = "neutral") {
-			$this->messages[] = Array("type" => $type, "message" => $message);
+			if(is_string($message) && (strlen($message) > 0))
+				$this->messages[] = Array("type" => $type, "message" => $message);
 			return $this;
 		}
 		
