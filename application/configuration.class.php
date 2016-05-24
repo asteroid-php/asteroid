@@ -6,6 +6,7 @@
 	use stdClass;
 	class Configuration extends Object {
 		protected $application = null;
+		protected $navigation = null;
 		
 		// function __construct(): Creates a configuration object with default configuration
 		public function __construct($application) {
@@ -42,7 +43,7 @@
 			
 			// Template configuration, these options may not apply to third-party templates
 			$this->template_background = __DIR__ . "/static/images/background.png"; // Can be a file on this server or a remote url
-			$this->template_logo = "https://samuelthomas.ml/index/logo"; // Set to null to remove the title image - if this is null set template_show_title to true
+			$this->template_logo = __DIR__ . "/static/images/logo.png"; // Set to null to remove the title image - if this is null set template_show_title to true
 			$this->template_icon = "https://samuelthomas.ml/index/icon"; // Favourites icon (favicon) for this site
 			$this->template_apple_touch_icon = "https://samuelthomas.ml/index/apple-touch-icon"; // Apple Touch Icon for this site - will be displayed on the home screen when added to the home screen
 			$this->template_show_title = true;
@@ -75,11 +76,30 @@
 				"error" => "Asteroid\\Controllers\\Error",
 				"auth" => "Asteroid\\Controllers\\Authentication",
 				"account" => "Asteroid\\Controllers\\Account",
-				"about" => "Asteroid\\Controllers\\About"
+				"about" => "Asteroid\\Controllers\\About",
+				"control-panel" => "Asteroid\\Controllers\\ControlPanel"
 			);
 			
 			// Controllers configuration (of controllers):
-			$this->controllers_configuration = Array();
+			$this->controllers_configuration = new stdClass();
+			
+			// About controller configuration:
+			$this->controllers_configuration->about = new stdClass();
+			$this->controllers_configuration->about->about_text = "This is the about page. You should replace this with your own text.";
+			$this->controllers_configuration->about->terms_text = null;
+			$this->controllers_configuration->about->privacy_text = null;
+			$this->controllers_configuration->about->email = "support@" . $this->hostname;
+			$this->controllers_configuration->about->telephone = null;
+			$this->controllers_configuration->about->mobile = null;
+			$this->controllers_configuration->about->facebook_name = null;
+			$this->controllers_configuration->about->facebook_url = null;
+			$this->controllers_configuration->about->twitter_name = null;
+			$this->controllers_configuration->about->twitter_url = null;
+			$this->controllers_configuration->about->github_name = null;
+			$this->controllers_configuration->about->github_url = null;
+			$this->controllers_configuration->about->contact_database = "default";
+			$this->controllers_configuration->about->contact_table = "contact";
+			$this->controllers_configuration->about->contact_addresses = Array("support@" . $this->hostname);
 			
 			// Models configuration:
 			// Array of enabled models - example: "{model}" => "{class}"
@@ -153,6 +173,7 @@
 			$this->oauth->library_class = "OAuthST";
 			$this->oauth->client_id = "";
 			$this->oauth->client_secret = "";
+			$this->oauth->client_scope = Array("user", "user:email");
 			
 			// Mail library configuration:
 			$this->mail = new stdClass();
@@ -165,6 +186,24 @@
 			//$config->mail->smtp = null; // Uncomment to use the mail() function instead of an SMTP server
 			$this->mail->from = "support@example.com"; // The email address you want all emails to come from
 			$this->mail->name = "Example.com Support"; // The user-friendly name you want all emails to come from
+		}
+		
+		// function navigation(): Returns the navigation object
+		public function navigation() {
+			$items = $this->get([ "navigation" ]);
+			if(is_callable($items))
+				$items = call_user_func($items);
+			
+			if(is_object($items))
+				$items = (array)$items;
+			if(!is_array($items))
+				$items = $this->getNavigation();
+			
+			foreach($this->application->events()->triggerR("navigation") as $response)
+				if(is_object($response) || is_array($response))
+					$items[] = (object)$response;
+			
+			return $items;
 		}
 		
 		// function getNavigation(): Returns the default navigation object
@@ -297,8 +336,6 @@
 		public function template_ajaxify() { return $this->cfgetset([ "template_ajaxify" ], func_get_args(), "boolean"); }
 		public function template_autoupdate() { return $this->cfgetset([ "template_autoupdate" ], func_get_args(), "boolean"); }
 		public function template_emoji() { return $this->cfgetset([ "template_emoji" ], func_get_args(), "boolean"); }
-		
-		public function navigation() { return $this->cfgetset([ "navigation" ], func_get_args()); }
 		
 		public function filesystem_root() { return $this->cfgetset([ "filesystem", "root_dir" ], func_get_args(), "string"); }
 		public function filesystem_views_dir() { return $this->cfgetset([ "filesystem", "views_dir" ], func_get_args(), "string"); }
