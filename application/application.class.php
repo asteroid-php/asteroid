@@ -439,8 +439,10 @@
 		}
 		
 		// function getControllerURL(): Returns the current controller
-		public function getControllerURL() {
-			if(is_string($this->url_controller)) return $this->url_controller;
+		public function getControllerURL($up = 0) {
+			if(is_string($this->url_controller) && is_int($up) && ($up >= 1))
+				return preg_replace("/(\/.*){0,{$up}}$/", "", $this->url_controller);
+			elseif(is_string($this->url_controller)) return $this->url_controller;
 			else return "index";
 		}
 		
