@@ -357,15 +357,27 @@
 		}
 		
 		// function parseURL(): Parses a url and sets the controller, action and action info from it
-		public function parseURL($url = null) {
+		public function parseURL($url = null, $return = null) {
 			if(!is_string($url))
 				$url = $this->getURL();
+			
+			if(($return === null) && is_string($this->url_controller))
+				$return = true;
 			
 			$url = explode("/", str_replace("//", "/", $url));
 			foreach($url as $key => $value)
 				$url[$key] = urldecode($value);
-			$this->url_controller = isset($url[0]) && (trim($url[0]) != "") ? $url[0] : "index";
-			$this->url_action = isset($url[1]) && (trim($url[1]) != "") ? $url[1] : "index";
+			
+			if(!isset($url[0]) || (trim($url[0]) == ""))
+				$url[0] = "index";
+			if(!isset($url[1]) || (trim($url[1]) == ""))
+				$url[1] = "index";
+			
+			if($return === true)
+				return $url;
+			
+			$this->url_controller = $url[0];
+			$this->url_action = $url[1];
 			$this->url_action_info = array_slice($url, 2);
 		}
 		
