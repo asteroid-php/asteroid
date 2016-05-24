@@ -20,6 +20,7 @@
 		protected $definitions = Array();
 		
 		protected $databases = null;
+		protected $models = Array();
 		protected $libraries = Array();
 		protected $messages = Array();
 		
@@ -249,6 +250,9 @@
 			if(in_array(strtolower($model), Array("http", "mail")))
 				return call_user_func_array(Array($this, strtolower($model)), array_slice(func_get_args(), 1));
 			
+			if(isset($this->models[$model]))
+				return $this->models[$model];
+			
 			$class = $this->configuration([ "models", $model ]);
 			if(!class_exists($class) && !class_exists($class = "Asteroid\\Models\\" . $model))
 				throw new Exception(__METHOD__, "Failed to load model {$model}.");
@@ -257,6 +261,13 @@
 			if(method_exists($class, "__construct"))
 				$object = $reflection->newInstanceArgs(array_merge(Array($this), array_slice(func_get_args(), 1)));
 			else $object = $reflection->newInstance();
+			
+			// Give this model the application
+			$object->application = $this;
+			
+			if(isset($object->one_instance) && ($object->one_instance === true))
+				$this->models[$model] = $object;
+			
 			return $object;
 		}
 		
