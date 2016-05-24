@@ -281,6 +281,10 @@
 			if(is_string($object)) $object = new $object($this);
 			if(method_exists($object, "init")) $object->init($this);
 			
+			// Register the ready event
+			if(method_exists($object, "ready"))
+				$this->events()->bind("ready", Array($object, "ready"));
+			
 			$this->libraries[$class] = $object;
 			return true;
 		}
