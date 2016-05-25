@@ -7,17 +7,21 @@
 	namespace Asteroid;
 	class Filesystem {
 		protected $application = null;
+		protected $directory = null;
 		
 		// function __construct(): Creates a new filesystem object
-		public function __construct($application, $directory = null) {
+		public function __construct($application, $directory = null, $root_dir = null) {
 			if(is_object($application) && ($application instanceof Application))
 				$this->application = $application;
 			else throw new Exception(__METHOD__, "\$application must be an instance of Application.");
 			
+			if(!is_string($root_dir))
+				$root_dir = $this->root();
+			
 			if(is_string($directory) && (substr($directory, 0, 1) == "/") && is_dir($directory))
 				$this->directory = "/" . trim(realpath($directory), "/");
 			elseif(is_string($root_dir = $this->root()) && (substr($root_dir, 0, 1) == "/"))
-				$this->directory = "/" . trim($root_dir, "/");
+				$this->directory = "/" . trim(trim($root_dir, "/") . "/" . trim($directory, "/"), "/");
 			else $this->directory = "/";
 		}
 		
@@ -30,6 +34,14 @@
 		
 		// function path(): Gets the real path of a file/directory
 		public function path($path, $real = true) {
+			// Replace placeholders
+			$path = preg_replace("/(^|\/)~(\/|$)/i", "/" . trim($this->root() . "/", "/"), $path);
+			$path = preg_replace_callback("/%([a-zA-Z0-9-]+)%/", function($matches) use($this) {
+				if(is_string($value = $this->application->configuration([ "filesystem", $matches[1] . "_dir" ])))
+					return "/" . trim($value, "/");
+				else return $matches[0];
+			}, $path);
+			
 			if(substr($path, 0, 1) != "/") $path = $this->directory . "/" . trim($path, "/");
 			if($real === true) return realpath($path);
 			else return $path;
