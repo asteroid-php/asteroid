@@ -36,8 +36,9 @@
 		public function path($path, $real = true) {
 			// Replace placeholders
 			$path = preg_replace("/(^|\/)~(\/|$)/i", "/" . trim($this->root() . "/", "/"), $path);
-			$path = preg_replace_callback("/%([a-zA-Z0-9-]+)%/", function($matches) use($this) {
-				if(is_string($value = $this->application->configuration([ "filesystem", $matches[1] . "_dir" ])))
+			$application = $this->application;
+			$path = preg_replace_callback("/%([a-zA-Z0-9-]+)%/", function($matches) use($application) {
+				if(is_string($value = $application->configuration([ "filesystem", $matches[1] . "_dir" ])))
 					return "/" . trim($value, "/");
 				else return $matches[0];
 			}, $path);
