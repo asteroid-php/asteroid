@@ -43,16 +43,16 @@
 			if(isset($controller->subcontrollers[$action]) && is_string($controller->subcontrollers[$action]))
 				return $this->application->subcontroller($controller->subcontrollers[$action], null, in_array($action, $controller->action_swap), $this->getSubcontrollerVariables($controller));
 			
+			// Replace - with _
+			$action = str_replace("-", "_", $action);
+			
 			// If $action does not exist, check if a default action exists instead
 			if(!method_exists($controller, $action) && is_string($controller->default_action))
 				$action = $controller->default_action;
 			
-			// Replace - with _
-			$action = str_replace("-", "_", $action);
-			
 			// Check if $action exists or is a magic method
 			if(!method_exists($controller, $action) || (substr($action, 0, 2) == "__"))
-				return $this->loadFromClass($this->application->configuration([ "controllers", "error" ]), "_404", array_merge(Array($controller, $action), $actioninfo));
+				return "_404";
 			
 			// Give this controller it's variables
 			foreach($variables as $key => $value)
