@@ -1,0 +1,92 @@
+{% extends "packagemanager/default" %}
+{% block content %}
+	<div class="container-fluid">
+		<div class="pull-right" style="margin-top: 20px;">
+			{% if package.enabled is false %}<span class="label label-warning">Disabled</span>&nbsp;{% endif %}
+			<div class="btn-group">
+				{% if package.enabled is false %}
+					<a class="btn btn-warning" href="{{ application.generateURL("packages", package.id, "enable") }}">Enable</a>
+					<a class="btn btn-warning" href="{{ application.generateURL("packages", package.id, "require") }}">Require</a>
+				{% else %}
+					{% if package.required is true %}
+						<a class="btn btn-warning" href="{{ application.generateURL("packages", package.id, "enable") }}">Don't require</a>
+					{% else %}
+						<a class="btn btn-warning" href="{{ application.generateURL("packages", package.id, "require") }}">Require</a>
+					{% endif %}
+					<a class="btn btn-warning" href="{{ application.generateURL("packages", package.id, "disable") }}">Disable</a>
+				{% endif %}
+				<a class="btn btn-success" href="{{ application.generateURL("packages", package.id, "backups") }}">Backups</a>
+				{% if package.packagemanager %}
+					<a class="btn btn-danger" href="{{ application.generateURL("packages", package.id, "delete") }}">Delete</a>
+				{% endif %}
+			</div>
+			<a class="btn btn-link" href="{{ application.generateURL("packages") }}"><span class="glyphicon glyphicon-arrow-left"></span> Packages</a>
+		</div>
+		
+		<h1 style="margin-bottom: 0px;">{{ package.name }}</h1>
+		<h2 style="margin-top: 0px;"><small>{{ package.id }}</small></h2>
+		
+		{% if package.description is string and package.description|length > 0 %}
+			<div class="description" style="word-wrap: break-word;">{{ package.description|parsedown }}</div>
+		{% endif %}
+		
+		<div class="row">
+			<div class="col-sm-3 text-muted">Directory</div>
+			<div class="col-sm-9" style="word-wrap: break-word;">{{ package.directory }}</div>
+		</div>
+		<div class="row">
+			<div class="col-sm-3 text-muted">Version</div>
+			<div class="col-sm-9">{{ package.definition.version }}</div>
+		</div>
+		<div class="row">
+			<div class="col-sm-3 text-muted">Updater URL</div>
+			<div class="col-sm-9" style="word-wrap: break-word;">{{ package.definition.update_url }}</div>
+		</div>
+		<div class="row">
+			<div class="col-sm-3 text-muted">Autoloader namespace</div>
+			<div class="col-sm-9" style="word-wrap: break-word;">{{ package.definition.autoloader_prefix }}</div>
+		</div>
+		<div class="row">
+			<div class="col-sm-3 text-muted">Autoloader extension</div>
+			<div class="col-sm-9" style="word-wrap: break-word;">{{ package.definition.autoloader_extension }}</div>
+		</div>
+		<div class="row">
+			<div class="col-sm-3 text-muted">Autoloader directory</div>
+			<div class="col-sm-9" style="word-wrap: break-word;">{{ package.definition.autoloader_directory }}</div>
+		</div>
+		<div class="row">
+			<div class="col-sm-3 text-muted">Templates directory</div>
+			<div class="col-sm-9" style="word-wrap: break-word;">{{ package.definition.templates_directory }}</div>
+		</div>
+		<div class="row">
+			<div class="col-sm-3 text-muted">Default language</div>
+			<div class="col-sm-9">{{ package.definition.translations_default }}</div>
+		</div>
+		<div class="row">
+			<div class="col-sm-3 text-muted">Translations directory</div>
+			<div class="col-sm-9" style="word-wrap: break-word;">{{ package.definition.translations_directory }}</div>
+		</div>
+		<div class="row">
+			<div class="col-sm-3 text-muted">Data directory</div>
+			<div class="col-sm-9" style="word-wrap: break-word;">{{ package.definition.data_directory }}</div>
+		</div>
+		<div class="row">
+			<div class="col-sm-3 text-muted">Defines</div>
+			<div class="col-sm-9" style="word-wrap: break-word;">{% for package in package.definition.define %}
+				{% if not loop.first %}<br />{% endif %}
+				{{ package }}
+			{% endfor %}</div>
+		</div>
+		
+		<h3>Configuration</h3>
+		{% if package.definition.setup_controller is string %}
+			<p class="alert alert-info" style="word-wrap: break-word;">Go to <a class="alert-link no-ajaxy" href="{{ application.generateURL("packages", package.id, "setup") }}">{{ application.generateRelativeURL("packages", package.id, "setup") }}</a> to setup this package, or paste your configuration file below.</p>
+		{% endif %}
+		<form action="{{ application.generateURL("packages", package.id, "configuration") }}" method="post">
+			<div class="form-group">
+				<textarea class="form-control" name="configuration" style="resize: vertical; min-height: 200px; max-height: 500px;">{{ configuration }}</textarea>
+			</div>
+			<div class="form-group clearfix"><button class="btn btn-primary pull-right" type="submit">Save</button></div>
+		</form>
+	</div>
+{% endblock %}

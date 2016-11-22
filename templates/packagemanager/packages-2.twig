@@ -1,0 +1,35 @@
+{% extends "packagemanager/default" %}
+{% block content %}
+	<div class="container-fluid">
+		<h1>Packages</h1>
+		{% for id, package in packages %}<div class="package{% if package.enabled is false %} text-muted{% endif %}">
+			{% if not loop.first %}<hr />{% endif %}
+			<div class="pull-right">
+				{% if package.packagemanager is true %}<span class="label label-warning">Package Manager</span>&nbsp;{% endif %}
+				{% if package.enabled is false %}<span class="label label-warning">Disabled</span>&nbsp;{% endif %}
+				<div class="btn-group btn-group-sm">
+					<a class="btn btn-primary" href="{{ application.generateURL("packages", package.id, "details") }}">Details</a>
+					{% if package.enabled is false %}
+						<a class="btn btn-warning" href="{{ application.generateURL("packages", package.id, "enable") }}">Enable</a>
+						<a class="btn btn-warning" href="{{ application.generateURL("packages", package.id, "require") }}">Require</a>
+					{% else %}
+						{% if package.required is true %}
+							<a class="btn btn-warning" href="{{ application.generateURL("packages", package.id, "enable") }}">Don't require</a>
+						{% else %}
+							<a class="btn btn-warning" href="{{ application.generateURL("packages", package.id, "require") }}">Require</a>
+						{% endif %}
+						<a class="btn btn-warning" href="{{ application.generateURL("packages", package.id, "disable") }}">Disable</a>
+					{% endif %}
+					<a class="btn btn-success" href="{{ application.generateURL("packages", package.id, "backups") }}">Backups</a>
+					{% if package.packagemanager %}
+						<a class="btn btn-danger" href="{{ application.generateURL("packages", package.id, "delete") }}">Delete</a>
+					{% endif %}
+				</div>
+			</div>
+			<h3>{{ package.name }} <small style="word-wrap: break-word;">{{ package.id }} in {{ package.directory }}</small></h3>
+			<p>{{ package.definition.short_description is string ? package.definition.short_description : package.definition.description|substr(0, 250) ~ (package.definition.description|length > 250 ? "...") }}</p>
+		</div>{% else %}
+			<p class="alert alert-info"><b>Info:</b> You have not installed any packages.</p>
+		{% endfor %}
+	</div>
+{% endblock %}

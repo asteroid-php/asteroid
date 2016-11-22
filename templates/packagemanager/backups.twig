@@ -1,0 +1,26 @@
+{% extends "packagemanager/default" %}
+{% block content %}
+	<div class="container-fluid">
+		<h1 class="clearfix"><div class="pull-right">
+			<div class="btn btn-group">
+				<a class="btn btn-success" href="{{ application.generateURL("packages", package.id, "backup") }}">Backup data</a>
+				<a class="btn btn-warning" href="#" data-toggle="modal" data-target="#restoremodal" data-package-id="{{ package.id }}">Restore</a>
+			</div>
+			<a class="btn btn-link" href="{{ application.generateURL("packages", package.id, "details") }}"><span class="glyphicon glyphicon-arrow-left"></span> {{ package.name }}</a>
+		</div>Backups</h1>
+		{% for backup in backups %}<div class="backup clearfix">
+			{% if not loop.first %}<hr style="margin: 10px 0px;" />{% endif %}
+			<div class="pull-right">
+				<div class="btn-group btn-group-sm">
+					<a class="btn btn-primary no-ajaxy" href="{{ application.generateURL("packages", package.id, "get-backup", backup) }}">Download</a>
+					<a class="btn btn-primary no-ajaxy" href="{{ application.generateURL("packages", package.id, "get-backup", backup, "zip") }}">Download as .zip</a>
+					<a class="btn btn-warning" href="{{ application.generateURL("packages", package.id, "restore-backup", backup) }}">Restore</a>
+					<a class="btn btn-danger" href="{{ application.generateURL("packages", package.id, "delete-backup", backup) }}">Delete</a>
+				</div>
+			</div>
+			<h4>{{ backup }}</h4>
+		</div>{% else %}
+			<p class="alert alert-info"><b>Info:</b> This package's data has never been backed up.</p>
+		{% endfor %}
+	</div>
+{% endblock %}
