@@ -8,36 +8,44 @@
 	use Asteroid\BaseController;
 	use Asteroid\HTML;
 	class Index extends BaseController {
-		public $rewrite_actions = Array("test-theme" => "test_theme");
-		
 		public function index() {
-			$this->application->view()->render($this->application->configuration([ "template_index" ]));
+			return $this->application->view()->render($this->application->configuration([ "template_index" ]));
 		}
 		
 		public function test_theme() {
-			$this->application->view()->render("test-template");
+			return $this->application->view()->render("test-template");
 		}
 		
-		public function session() {
-			$session = $this->application->session()->get();
-			if(is_array($session)) $session = (object)$session;
+		public function session($get = null) {
+			$session = $this->application->session();
+			
+			if($get == "id")
+				return $this->application->response()->sendJSON(Array(
+					"session_cookie" => $name = $this->application->configuration([ "session", "cookie_name" ]),
+					"was_session" => is_string($this->application->request()->cookie($name)),
+					"id" => $session->getID()
+				));
+			
+			$session = $session->get();
+			if(is_object($session))
+				$session = (array)$session;
 			
 			$excludes = $this->application->configuration([ "session", "print_excludes" ]);
 			if(is_array($excludes)) foreach($excludes as $exclude)
-				if(isset($session->{$exclude}))
-					$session->{$exclude} = null;
+				if(isset($session[$exclude]))
+					$session[$exclude] = null;
 			
-			$this->application->view()->renderString("<h2>Session</h2>" . (new HTML($session))->variable());
+			return $this->application->view()->renderString("<h2>Session</h2>" . (new HTML($session))->variable());
 		}
 		
 		public function user() {
 			$loggedin = $this->application->authentication()->loggedin($user);
-			$this->application->view()->renderString("<h2>User</h2><p>You <b>are" . ($loggedin === true ? "" : " not") . "</b> logged in.</p>" . (new HTML($user))->variable());
+			return $this->application->view()->renderString("<h2>User</h2><p>You <b>are" . ($loggedin === true ? "" : " not") . "</b> logged in.</p>" . (new HTML($user))->variable());
 		}
 		
 		public function cookies() {
 			$cookies = $this->application->request()->cookie();
-			$this->application->view()->renderString("<h2>Cookies</h2>" . (new HTML($cookies))->variable());
+			return $this->application->view()->renderString("<h2>Cookies</h2>" . (new HTML($cookies))->variable());
 		}
 		
 		public function captcha() {
@@ -108,7 +116,7 @@
 			} else {
 				// Request a captcha image from samuelthomas.ml
 				// This MUST be done here on the server because the request exposes the captcha text
-				$request = $this->application->create("HTTP", "GET", "https://samuelthomas.ml/index/captcha/" . $str_captcha);
+				$request = $this->application->http("GET", "https://samuelthomas.ml/index/captcha/" . $str_captcha);
 				$request->execute();
 				
 				// Send http-header to prevent image caching
@@ -117,24 +125,33 @@
 				$this->application->response()->header("Cache-Control", "no-store, no-cache, proxy-revalidate");
 				
 				// Send image to browser
-				echo $request->response();
+				$this->application->response()->add($request->response());
 			}
 			
-			exit();
+			return $this->application->status("Success");
 		}
 		
 		private function image($image) {
 			// Gets an image
-			if(is_string($image) && filter_var($image, FILTER_VALIDATE_URL)) {
+			if(is_array($image)) {
+				// Rewrite to another controller
+				$this->application->parseURL(call_user_func_array(Array($this->application, "generateRelativeURL"), $image), false);
+				return $this->application->controller()->loadFromURL($this->application->getControllerURL(), $this->application->getAction(), $this->application->getActionInfo());
+			} elseif(is_string($image) && filter_var($image, FILTER_VALIDATE_URL)) {
 				// Rewrite to the image url
-				$request = $this->application->create("HTTP", "GET", $image);
+				$request = $this->application->http("GET", $image);
 				$request->execute();
 				
 				$this->application->response()->header("Content-Type", $request->getHeader("Content-Type"));
-				echo $request->response();
+				$this->application->response()->add($request->response());
 			} elseif(is_string($image) && file_exists($image)) {
 				// Output the contents of the image file
 				$image = imagecreatefromstring(file_get_contents($image));
+				
+				imagealphablending($image, false);
+				$background = imagecolorallocatealpha($image, 0, 0, 0, 127);
+				imagefill($image, 0, 0, $background);
+				imagesavealpha($image, true);
 				
 				if(function_exists("imagepng")) {
 					$this->application->response()->header("Content-Type", "image/png");
@@ -153,26 +170,28 @@
 				imagesavealpha($image, true);
 				
 				// Send image to browser and destroy image from php cache
-				header("Content-type: image/png");
+				$this->application->response()->header("Content-Type", "image/png");
 				imagepng($image);
 				imagedestroy($image);
 			}
+			
+			return $this->application->status("Success");
 		}
 		
 		public function background() {
-			$this->image($this->application->configuration([ "template_background" ]));
+			return $this->image($this->application->configuration([ "template_background" ]));
 		}
 		
 		public function logo() {
-			$this->image($this->application->configuration([ "template_logo" ]));
+			return $this->image($this->application->configuration([ "template_logo" ]));
 		}
 		
 		public function icon() {
-			$this->image($this->application->configuration([ "template_icon" ]));
+			return $this->image($this->application->configuration([ "template_icon" ]));
 		}
 		
-		public function appleTouchIcon() {
-			$this->image($this->application->configuration([ "template_apple_touch_icon" ]));
+		public function apple_touch_icon() {
+			return $this->image($this->application->configuration([ "template_apple_touch_icon" ]));
 		}
 	}
 	
