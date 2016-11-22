@@ -22,10 +22,31 @@
 			else throw new Exception(__METHOD__, "\$application must be an instance of Application.");
 			
 			// Create an OAuth object
+			$class = $this->application->configuration([ "oauth", "library_class" ]);
 			$client_id = $this->application->configuration([ "oauth", "client_id" ]);
 			$client_secret = $this->application->configuration([ "oauth", "client_secret" ]);
 			$options = $this->application->configuration([ "oauth", "options" ]);
-			$this->oauth = new OAuth($this->application, $client_id, $client_secret);
+			if(is_object($options)) $options = (array)$options;
+			if(!is_array($options)) $options = Array();
+			
+			$this->oauth = new $class($client_id, $client_secret, $options);
+			
+			$this->oauth->options("session_handler", Array(
+				"check" => function($oauth) { return true; },
+				"get" => function($key, $oauth) use($application) {
+					return $application->session()->get([ "oauth", $key ]);
+				},
+				"set" => function($key, $value, $oauth) use($application) {
+					$application->session()->set([ "oauth", $key ], $value);
+				},
+				"delete" => function($key, $oauth) use($application) {
+					$application->session()->set([ "oauth", $key ], null);
+				}
+			));
+			
+			// Get access token
+			if(is_string($token = $this->oauth->session("token")))
+				$this->oauth->accessToken($token, false);
 		}
 		
 		// function controller(): Gets the authentication controller
@@ -38,7 +59,6 @@
 		
 		// function user(): Gets the current user or null if not authenticated
 		public function user() {
-			//var_dump($this->oauth->accessToken());
 			if(!is_string($this->oauth->accessToken()))
 				return UserModel::cfd($this->application, new stdClass());
 			
