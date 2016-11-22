@@ -31,7 +31,7 @@
 		protected $url_action_info = null;
 		
 		private $version = "2.0.0";
-		private $version_beta = 2;
+		private $version_beta = 3;
 		
 		// function __construct(): Creates a new application object
 		public function __construct() {
