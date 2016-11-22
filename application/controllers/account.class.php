@@ -7,11 +7,13 @@
 	namespace Asteroid\Controllers;
 	use Asteroid\BaseController;
 	class Account extends BaseController {
-		public function index() {
+		public function __construct() {
 			if(!$this->application->authentication()->loggedin($user))
-				$this->application->error("You are not logged in.")->view()->render("blank");
-			
-			$this->application->view()->render("account", Array("user" => $user));
+				throw $this->application->error("You are not logged in.")->view()->render("blank");
+		}
+		
+		public function index() {
+			return $this->application->view()->render("account", Array("user" => $user));
 		}
 	}
 	
