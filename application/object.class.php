@@ -5,14 +5,19 @@
 	 * Gets / sets an object / arrays values.
 	 */
 	namespace Asteroid;
+	use JsonSerializable;
 	use stdClass;
-	class Object {
+	class Object implements JsonSerializable {
+		protected $data = null;
+		
 		// function __construct(): Merges object(s)/array(s) into an Object object
 		public function __construct() {
-			foreach(func_get_args() as $merge) if(is_object($merge) || is_array($merge)) {
-				foreach($merge as $key => $value)
-					$this->set([ $key ], $value);
-			}
+			$this->data = new stdClass();
+			
+			foreach(func_get_args() as $merge)
+				if(is_object($merge) || is_array($merge))
+					foreach($merge as $key => $value)
+						$this->set([ $key ], $value);
 		}
 		
 		// function get(): Gets a value
@@ -26,7 +31,7 @@
 			
 			$aset = false;
 			
-			$options = Array(&$this);
+			$options = Array(&$this->data);
 			$ek = 0;
 			foreach($name as $i => $key) {
 				if(is_object($options[$ek])) {
@@ -53,23 +58,28 @@
 		
 		// function __get(): Gets a value using normal syntax
 		public function __get($key) {
-			if(isset($this->{$key})) return $this->{$key};
-			else return null;
+			return $this->get([ $key ]);
 		}
 		
 		// function geta(): Gets values and puts them in an array
 		// Example: list($_1, $_2) = $object->geta([ "_1" ], [ "_2" ]);
-		/*public function geta() {
+		public function geta() {
 			$return = Array();
 			foreach(func_get_args() as $key) {
 				$return[] = $this->get($key);
 			}
 			
 			return $return;
-		}*/
+		}
+		
+		// function object(): Gets a value in an object instance
+		public function object($name) {
+			$reflection = new ReflectionClass(get_class($this));
+			return $reflection->createInstanceArgs(call_user_func_array(Array($this, "geta"), func_get_args()));
+		}
 		
 		// function check(): Checks if a value is really set
-		public function check($name) {
+		public function check($name, $type = null, $class = null) {
 			if(is_string($name) || is_int($name)) $name = Array($name);
 			if(!is_array($name)) return null;
 			
@@ -79,8 +89,20 @@
 			$option = $this->get($name);
 			
 			if(!is_array($option) && !is_object($option)) return false;
-			if(array_key_exists($check, (array)$option)) return true;
+			if(!array_key_exists($check, $optionarray = (array)$option))
+				return false;
+			
+			if(!is_string($type))
+				return true;
+			elseif((gettype($optionarray[$check]) == "object") && is_string($class))
+				return $optionarray[$check] instanceof $class ? true : false;
+			elseif(gettype($optionarray[$check]) == $type)
+				return true;
 			else return false;
+		}
+		
+		public function __isset($name) {
+			return $this->check($name);
 		}
 		
 		// function set(): Sets a value
@@ -96,7 +118,7 @@
 			
 			$aset = true;
 			
-			$options = Array(&$this);
+			$options = Array(&$this->data);
 			$ek = 0;
 			foreach($name as $i => $key) {
 				if(is_object($options[$ek])) {
@@ -118,7 +140,7 @@
 			}
 			$option = &$options[$ek];
 			
-			if(is_object($option) && !($option instanceof Closure) && (is_object($value) || is_array($value))) {
+			/* if(is_object($option) && !($option instanceof Closure) && (is_object($value) || is_array($value))) {
 				foreach($value as $k => $v) {
 					if(is_object($v) && isset($option->{$k})) $option->{$k} = (object)array_merge((array)$option->{$k}, (array)$v);
 					if(is_array($v) && isset($option->{$k})) $option->{$k} = (array)array_merge((array)$option->{$k}, (array)$v);
@@ -130,7 +152,19 @@
 					if(is_array($v) && isset($option[$k])) $option[$k] = (array)array_merge((array)$option[$k], (array)$v);
 					else $option[$k] = $v;
 				}
-			} else $option = $value;
+			} else */ $option = $value;
+			
+			if(isset($options[$ek - 1]) && is_object($options[$ek - 1]) && ($value === null))
+				unset($options[$ek - 1]->{$key});
+			elseif(isset($options[$ek - 1]) && is_array($options[$ek - 1]) && ($value === null))
+				unset($options[$ek - 1][$key]);
+			
+			// Autosave
+			$this->_runautosave();
+		}
+		
+		public function __set($name, $value) {
+			return $this->set($name, $value);
 		}
 		
 		// function add(): Adds a value to an array
@@ -146,7 +180,7 @@
 			
 			$aset = true;
 			
-			$options = Array(&$this);
+			$options = Array(&$this->data);
 			$ek = 0;
 			foreach($name as $i => $key) {
 				if(is_object($options[$ek])) {
@@ -172,23 +206,50 @@
 				$option = Array();
 			if(is_array($option))
 				$option[] = $value;
+			
+			// Autosave
+			$this->_runautosave();
+		}
+		
+		public function __unset($name) {
+			$this->set([ $name ], null);
 		}
 		
 		// function tarray(): Converts $this into an array
 		public function tarray() {
 			$array = Array();
-			foreach($this as $key => $value) {
+			foreach($this->data as $key => $value) {
 				$array[$key] = $value;
 			} return $array;
 		}
 		
 		// function tobject(): Converts $this into an object of type $object
-		public function tobject($object) {
+		public function tobject($object = null) {
 			if(is_string($object)) $object = new $object();
-			elseif(!is_object($object)) $object = new Object();
-			foreach($this as $key => $value) {
+			elseif(!is_object($object)) $object = new stdClass();
+			foreach($this->data as $key => $value) {
 				$object->{$key} = $value;
 			} return $object;
+		}
+		
+		// function _runautosave();
+		protected function _runautosave() {
+			
+		}
+		
+		public function __destruct() {
+			// Autosave
+			$this->_runautosave();
+		}
+		
+		// function __debugInfo(): Returns the data in this object
+		public function __debugInfo() {
+			return $this->tarray();
+		}
+		
+		// function jsonSerialize(): Returns the data in this object
+		public function jsonSerialize() {
+			return $this->tarray();
 		}
 	}
 	

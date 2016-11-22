@@ -14,64 +14,77 @@
 				$this->application = $application;
 			else throw new Exception(__METHOD__, "\$application must be an instance of Application.");
 			
-			$this->title = preg_replace("/^(www\.)/i", "", $_SERVER["HTTP_HOST"]);
-			$this->description = "A website made with Asteroid";
-			$this->hostname = preg_replace("/^(www\.)/i", "", $_SERVER["HTTP_HOST"]); // Your domain name, without www
-			$this->hostnamewww = false; // True if www. should be prepended to the hostname
-			$this->path = "/";
-			$this->ssl = (isset($_SERVER["HTTPS"]) && (strtoupper($_SERVER["HTTPS"]) != "OFF")) ||
+			if(!isset($_SERVER["HTTP_HOST"]))
+				$_SERVER["HTTP_HOST"] = "";
+			
+			$this->data = new stdClass();
+			$this->data->title = preg_replace("/^(www\.)/i", "", $_SERVER["HTTP_HOST"]);
+			$this->data->description = "A website made with Asteroid";
+			$this->data->hostname = preg_replace("/^(www\.)/i", "", $_SERVER["HTTP_HOST"]); // Your domain name, without www
+			$this->data->hostnamewww = false; // True if www. should be prepended to the hostname
+			$this->data->path = "/";
+			$this->data->ssl = (isset($_SERVER["HTTPS"]) && (strtoupper($_SERVER["HTTPS"]) != "OFF")) ||
 				(isset($_SERVER["REQUEST_SCHEME"]) && (strtoupper($_SERVER["REQUEST_SCHEME"]) == "HTTPS")) ||
 				(isset($_SERVER["SERVER_PORT"]) && ($_SERVER["SERVER_PORT"] == 443)) ||
 				(isset($_SERVER["HTTP_X_FORWARDED_PROTO"]) && (strtoupper($_SERVER["HTTP_X_FORWARDED_PROTO"]) == "HTTPS")) ||
 				(isset($_SERVER["HTTP_X_FORWARDED_PORT"]) && ($_SERVER["HTTP_X_FORWARDED_PORT"] == 443))
 			? true : false; // This should be the current SSL status,
-			$this->https = $this->ssl; // This should be true if SSL should be used
-			$this->errors = true;
+			$this->data->https = $this->data->ssl; // This should be true if SSL should be used
+			$this->data->errors = true;
 			
 			// CDN configuration
-			$this->cdn = new stdClass();
-			$this->cdn->url = "https://cdn.asteroid.ml";
+			$this->data->cdn = new stdClass();
+			$this->data->cdn->url = "https://cdn.asteroid.ml";
 			
 			// Default views, for php views these should all be the name of a view
 			// For twig views these (except extends, index and string) should be null (in twig views should extend from a master view)
-			$this->template_extends = "theme-default/default"; // The twig file views that extend from "default" extend from this
-			$this->template_index = "index";
-			$this->template_string = "string";
-			$this->template_header = null;
-			$this->template_messages = null;
-			$this->template_footer = null;
+			$this->data->template_extends = "theme-default/default"; // The twig file views that extend from "default" extend from this
+			$this->data->template_index = "index";
+			$this->data->template_string = "string";
+			$this->data->template_header = null;
+			$this->data->template_messages = null;
+			$this->data->template_footer = null;
 			
 			// Template configuration, these options may not apply to third-party templates
-			$this->template_background = __DIR__ . "/static/images/background.png"; // Can be a file on this server or a remote url
-			$this->template_logo = __DIR__ . "/static/images/logo.png"; // Set to null to remove the title image - if this is null set template_show_title to true
-			$this->template_icon = "https://samuelthomas.ml/index/icon"; // Favourites icon (favicon) for this site
-			$this->template_apple_touch_icon = "https://samuelthomas.ml/index/apple-touch-icon"; // Apple Touch Icon for this site - will be displayed on the home screen when added to the home screen
-			$this->template_show_title = true;
-			$this->template_show_description = false;
-			$this->footer_text = "Copyright &copy; " . date("Y") . " <i>" . ltrim($_SERVER["HTTP_HOST"], "www.") . "</i>";
-			$this->template_page = true;
-			$this->template_html_class = "";
-			$this->template_css_file = "/static/themes/default/scss/default.scss";
-			$this->template_css_additional = Array(
+			$this->data->template_background = __DIR__ . "/static/images/background.png"; // Can be a file on this server or a remote url
+			$this->data->template_logo = __DIR__ . "/static/images/logo.png"; // Set to null to remove the title image - if this is null set template_show_title to true
+			$this->data->template_icon = "https://samuelthomas.ml/index/icon"; // Favourites icon (favicon) for this site
+			$this->data->template_apple_touch_icon = "https://samuelthomas.ml/index/apple-touch-icon"; // Apple Touch Icon for this site - will be displayed on the home screen when added to the home screen
+			$this->data->template_show_title = true;
+			$this->data->template_show_description = false;
+			$this->data->footer_text = "Copyright &copy; " . date("Y") . " <i>" . ltrim($_SERVER["HTTP_HOST"], "www.") . "</i>";
+			$this->data->template_page = true;
+			$this->data->template_html_class = "";
+			$this->data->template_css_file = "/static/themes/default/scss/default.scss";
+			$this->data->template_css_additional = Array(
 				// To include an additional css file: "{path_relative_to_the_current_page}" => "file"
 				// To include an additional css file: "{path_relative_to_the_current_page}"
 				// To include inline css: "{css}" => "inline"
 			);
 			
 			// Template features, these options may not apply to third-party templates
-			$this->template_fancybuttons = true;
-			$this->template_ajaxify = true;
-			$this->template_autoupdate = false;
-			$this->template_emoji = true;
+			$this->data->template_fancybuttons = true;
+			$this->data->template_ajaxify = true;
+			$this->data->template_autoupdate = false;
+			$this->data->template_emoji = true;
+			
+			// Exception handling configuration:
+			$this->data->error = new stdClass();
+			$this->data->error->class = "Asteroid\\FatalError";
+			
+			// Status configuration:
+			$this->data->status = Array(
+				"PlainStatus" => "Asteroid\\BaseStatus"
+			);
 			
 			// Navigation menu items:
 			// If this is a function it will be called to get navigation items, allows use of variables not defined yet
-			$this->navigation = Array($this, "getNavigation");
+			$this->data->navigation = Array($this, "getNavigation");
 			
 			// Controllers configuration:
 			// Array of enabled controllers
 			// Default url is "index", to set a default controller use "index" => "some_controller"
-			$this->controllers = Array(
+			$this->data->controllers = Array(
 				"index" => "Asteroid\\Controllers\\Index",
 				"error" => "Asteroid\\Controllers\\Error",
 				"auth" => "Asteroid\\Controllers\\Authentication",
@@ -81,31 +94,34 @@
 			);
 			
 			// Controllers configuration (of controllers):
-			$this->controllers_configuration = new stdClass();
+			$this->data->controllers_configuration = new stdClass();
 			
 			// About controller configuration:
-			$this->controllers_configuration->about = new stdClass();
-			$this->controllers_configuration->about->about_text = "This is the about page. You should replace this with your own text.";
-			$this->controllers_configuration->about->terms_text = null;
-			$this->controllers_configuration->about->privacy_text = null;
-			$this->controllers_configuration->about->email = "support@" . $this->hostname;
-			$this->controllers_configuration->about->telephone = null;
-			$this->controllers_configuration->about->mobile = null;
-			$this->controllers_configuration->about->facebook_name = null;
-			$this->controllers_configuration->about->facebook_url = null;
-			$this->controllers_configuration->about->twitter_name = null;
-			$this->controllers_configuration->about->twitter_url = null;
-			$this->controllers_configuration->about->github_name = null;
-			$this->controllers_configuration->about->github_url = null;
-			$this->controllers_configuration->about->contact_database = "default";
-			$this->controllers_configuration->about->contact_table = "contact";
-			$this->controllers_configuration->about->contact_addresses = Array("support@" . $this->hostname);
+			$about = $this->data->controllers_configuration->about = new stdClass();
+			$about->about_text = "This is the about page. You should replace this with your own text.";
+			$about->terms_text = null;
+			$about->privacy_text = null;
+			$about->email = "support@" . $this->data->hostname;
+			$about->telephone = null;
+			$about->mobile = null;
+			$about->facebook_name = null;
+			$about->facebook_url = null;
+			$about->twitter_name = null;
+			$about->twitter_url = null;
+			$about->github_name = null;
+			$about->github_url = null;
+			$about->contact_database = "default";
+			$about->contact_table = "contact";
+			$about->contact_addresses = Array("support@" . $this->data->hostname);
+			
+			// Reserved controllers configuration:
+			$this->data->reserved_controllers = Array("static", "error");
 			
 			// Models configuration:
 			// Array of enabled models - example: "{model}" => "{class}"
 			// Note: models in the Asteroid\Models namespace do not need to be added here to work properly
 			// Models will try to load from this array then the models namespace
-			$this->models = Array(
+			$this->data->models = Array(
 				"Object" => "Asteroid\\DatabaseObjects\\Model"
 			);
 			
@@ -113,79 +129,80 @@
 			// Array of enabled libraries - example: "{class}"
 			// Note: libraries always need to be added here, even if they are in the Asteroid\Libraries namespace
 			// To "enable" a library just add it's class
-			$this->libraries = Array("Asteroid\\Libraries\\Asteroid");
+			$this->data->libraries = Array("Asteroid\\Libraries\\Asteroid");
 			
 			// Filesystem configuration:
-			$this->filesystem = new stdClass();
-			$this->filesystem->root_dir = $root_dir = dirname(__DIR__);
-			$this->filesystem->asteroid_dir = $root_dir;
-			$this->filesystem->application_dir = $root_dir . "/application";
-			$this->filesystem->views_dir = $root_dir . "/templates";
-			$this->filesystem->view_dirs = Array(
+			$this->data->filesystem = new stdClass();
+			$this->data->filesystem->root_dir = $root_dir = dirname(__DIR__);
+			$this->data->filesystem->asteroid_dir = $root_dir;
+			$this->data->filesystem->application_dir = $root_dir . "/application";
+			$this->data->filesystem->views_dir = $root_dir . "/templates";
+			$this->data->filesystem->view_dirs = Array(
 				"packagemanager" => $root_dir . "/templates/packagemanager",
 				"theme-default" => $root_dir . "/templates/theme-default"
 			);
-			$this->filesystem->cache_dir = $root_dir . "/cache";
+			$this->data->filesystem->cache_dir = $root_dir . "/cache";
 			
 			// Captcha configuration:
-			$this->captcha = new stdClass();
-			$this->captcha->width = 250;
-			$this->captcha->height = 70;
-			$this->captcha->length = 6;
-			$this->captcha->chars = "ABCDEFGHJKLMNPRTUVWXYZ2346789";
-			$this->captcha->font_path = $root_dir . "/../../public/static/fonts/captcha.ttf";
+			$this->data->captcha = new stdClass();
+			$this->data->captcha->width = 250;
+			$this->data->captcha->height = 70;
+			$this->data->captcha->length = 6;
+			$this->data->captcha->chars = "ABCDEFGHJKLMNPRTUVWXYZ2346789";
+			$this->data->captcha->font_path = $root_dir . "/../../public/static/fonts/captcha.ttf";
 			
 			// Database configuration:
 			// Map of databases - example: "{alias}" => (object)Array("database" => "{dbname}", "hostname" => "{hostname}", "username" => "{username}", "password" => "{password}")
-			$this->databases = new stdClass();
-			$this->databases->default = new stdClass();
-			$this->databases->default->database = "database";
-			$this->databases->default->hostname = "127.0.0.1";
-			$this->databases->default->username = "root";
-			$this->databases->default->password = "";
+			$this->data->databases = new stdClass();
+			$this->data->databases->default = new stdClass();
+			$this->data->databases->default->database = "database";
+			$this->data->databases->default->hostname = "127.0.0.1";
+			$this->data->databases->default->username = "root";
+			$this->data->databases->default->password = "";
 			
 			// Session configuration:
-			$this->session = new stdClass();
-			$this->session->handler = 1; // 1: file in session->file_directory, 2: table session->database_table in database session->database_name
-			$this->session->cookie_name = "session";
-			$this->session->cookie_host = "." . ltrim($this->hostname, "www.");
-			$this->session->database_name = "default";
-			$this->session->database_table = "sessions";
-			$this->session->file_directory = $root_dir . "/sessions";
-			$this->session->print_excludes = Array("captcha");
+			$this->data->session = new stdClass();
+			$this->data->session->handler = 1; // 1: file in session->file_directory, 2: table session->database_table in database session->database_name
+			$this->data->session->cookie_name = "session";
+			$this->data->session->cookie_host = "." . ltrim($this->data->hostname, "www.");
+			$this->data->session->database_name = "default";
+			$this->data->session->database_table = "sessions";
+			$this->data->session->file_directory = $root_dir . "/sessions";
+			$this->data->session->print_excludes = Array("captcha");
 			
 			// Authentication configuration:
 			// To disable authentication set auth->handler to null - not yet fully supported
 			// To use Samuel Thomas OAuth go to https://samuelthomas.ml/developer/clients
-			$this->auth = new stdClass();
-			$this->auth->handler = "Asteroid\\Authentication";
-			$this->auth->users = null; // Array of users allowed to access the website; set to null to allow anyone to access the website; set to an empty array to allow anyone to access the website, but only if they are signed in
-			$this->auth->admins = Array("samuelthomas2774", "admin"); // An array of users who will be allowed to access administration areas of the website
-			$this->auth->users_database = "default";
-			$this->auth->users_table = "users";
+			$this->data->auth = new stdClass();
+			$this->data->auth->handler = "Asteroid\\Authentication";
+			$this->data->auth->users = null; // Array of users allowed to access the website; set to null to allow anyone to access the website; set to an empty array to allow anyone to access the website, but only if they are signed in
+			$this->data->auth->admins = Array("samuelthomas2774", "admin"); // An array of users who will be allowed to access administration areas of the website
+			$this->data->auth->users_database = "default";
+			$this->data->auth->users_table = "users";
 			
 			// OAuth Authentication handler configuration:
 			// -- Custom OAuth Classes are not yet supported
 			// See https://github.com/samuelthomas2774/oauth-client for information about creating a custom OAuth class
 			// Then put the filename and class name here - you can also use one of the included OAuth classes like Facebook ("class.facebook.php", "OAuthFacebook")
 			// To use Samuel Thomas OAuth go to http://samuelthomas.ml/developer/clients
-			$this->oauth = new stdClass();
-			$this->oauth->library_class = "OAuthST";
-			$this->oauth->client_id = "";
-			$this->oauth->client_secret = "";
-			$this->oauth->client_scope = Array("user", "user:email");
+			$this->data->oauth = new stdClass();
+			$this->data->oauth->library_class = "OAuthST";
+			$this->data->oauth->client_id = "";
+			$this->data->oauth->client_secret = "";
+			$this->data->oauth->options = Array();
+			$this->data->oauth->client_scope = Array("user", "user:email");
 			
 			// Mail library configuration:
-			$this->mail = new stdClass();
-			$this->mail->smtp = new stdClass();
-			$this->mail->smtp->hostname = "localhost";
-			$this->mail->smtp->port = 25;
-			$this->mail->smtp->secure = 0; // 0 No SSL / 1 SSL / 2 TLS
-			$this->mail->smtp->username = null; // This will attempt to connect to the SMTP server without a username and password - if your SMTP server requires authentication, change this to the username and password
-			$this->mail->smtp->password = null;
+			$this->data->mail = new stdClass();
+			$this->data->mail->smtp = new stdClass();
+			$this->data->mail->smtp->hostname = "localhost";
+			$this->data->mail->smtp->port = 25;
+			$this->data->mail->smtp->secure = 0; // 0 No SSL / 1 SSL / 2 TLS
+			$this->data->mail->smtp->username = null; // This will attempt to connect to the SMTP server without a username and password - if your SMTP server requires authentication, change this to the username and password
+			$this->data->mail->smtp->password = null;
 			//$config->mail->smtp = null; // Uncomment to use the mail() function instead of an SMTP server
-			$this->mail->from = "support@example.com"; // The email address you want all emails to come from
-			$this->mail->name = "Example.com Support"; // The user-friendly name you want all emails to come from
+			$this->data->mail->from = "support@example.com"; // The email address you want all emails to come from
+			$this->data->mail->name = "Example.com Support"; // The user-friendly name you want all emails to come from
 		}
 		
 		// function navigation(): Returns the navigation object
@@ -342,5 +359,13 @@
 		public function filesystem_view_dirs() { return $this->cfgetset([ "filesystem", "view_dirs" ], func_get_args(), "array"); }
 		public function addViewDirectory() { return $this->cfgetseta([ "filesystem", "view_dirs" ], func_get_args(), "string"); }
 		public function filesystem_cache_dir() { return $this->cfgetset([ "filesystem", "cache_dir" ], func_get_args(), "string"); }
+		
+		public function __debugInfo() {
+			return $this->application->__debugInfo();
+		}
+		
+		public function jsonSerialize() {
+			return $this->application->jsonSerialize();
+		}
 	}
 	
