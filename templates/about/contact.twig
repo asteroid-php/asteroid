@@ -53,7 +53,7 @@
 		</tbody></table>
 	</div>
 	<div class="content">
-		<form action="javascript:" onsubmit="submitForm(this)" data-action="{{ application.generateURL(application.getControllerURL(), "contact", "save") }}" data-next="{{ application.generateURL(application.getControllerURL()) }}">
+		<form action="{{ application.generateURL(application.getControllerURL(), "contact", "save") }}" method="post">
 			<table class="no-border"><tbody>
 				<tr>
 					<td style="width: 200px;"><label for="name">Name</label></td>

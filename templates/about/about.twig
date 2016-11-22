@@ -2,12 +2,14 @@
 {% block content %}
 	<div class="content">
 		<h2>About</h2>
-		{{ about|parsedown }}
+		<div class="markdown">
+			{{ about }}
+		</div>
 	</div>
 	<div class="content">
 		<a href="{{ application.generateURL(application.getControllerURL(), "contact") }}" style=" margin-top: -10px; margin-right: -10px; float: right; "><button class="button" type="button">Contact</button></a>
 		<h2 style=" height: 30px; ">Contact</h2>
-		<form action="javascript:" onsubmit="submitForm(this)" data-action="{{ application.generateURL(application.getControllerURL(), "contact", "save") }}" data-next="" method="post">
+		<form action="{{ application.generateURL(application.getControllerURL(), "contact", "save") }}" method="post">
 			<input class="text" type="text" name="name" placeholder="Name" value="{{ application.authentication.user.name }}" required="required" style=" width: calc(35% - 34px); " maxlength="255" />
 			<input class="text" type="email" name="contact" placeholder="Email / Phone" value="{{ application.authentication.user.email }}" required="required" style=" width: calc(65% - 34px); " maxlength="255" /><br />
 			<textarea class="text-area" name="message" placeholder="Message" required="required" style=" width: calc(100% - 32px); resize: vertical; " maxlength="1500"></textarea><br />
