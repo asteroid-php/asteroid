@@ -55,7 +55,7 @@
 				if(is_string($content[$key]))
 					$content[$key] = $parsedown->text($content[$key]);
 			
-			$this->application->view()->title(is_string($title) ? $title : "")->renderString("<div class=\"markdown\">" . implode("\n</div></div><div class=\"content\"><div class=\"markdown\">\n", $content) . "</div>", is_array($data) ? $data : Array());
+			return $this->application->view()->title(is_string($title) ? $title : "")->renderString("<div class=\"markdown\">" . implode("\n</div></div><div class=\"content\"><div class=\"markdown\">\n", $content) . "</div>", is_array($data) ? $data : Array());
 		}
 	}
 	

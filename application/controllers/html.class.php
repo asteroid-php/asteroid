@@ -20,7 +20,7 @@
 				// Return false, triggering the "not found" page
 				return "_404";
 			
-			$this->application->view()->title(is_string($title) ? $title : "")->renderString(implode("\n</div><div class=\"content\">\n", $content));
+			return $this->application->view()->title(is_string($title) ? $title : "")->renderString(implode("\n</div><div class=\"content\">\n", $content));
 		}
 	}
 	
