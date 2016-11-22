@@ -33,14 +33,25 @@
 		}
 		
 		// function trigger(): Triggers an event - will return false if any callback returns false
-		public function trigger($event, $params = Array()) {
+		public function trigger($event, $params = Array(), &$status = null) {
 			if(!is_string($event)) return false;
 			if(!is_array($params)) return false;
-			if(!isset($this->events[$event])) $this->events[$event] = Array();
 			$return = true;
-			foreach($this->events[$event] as $callback)
-				if(call_user_func_array($callback, array_merge(Array($this->application), $params)) === false)
+			$status = Array();
+			foreach($this->getHandlers($event) as $callback)
+				try {
+					$r = call_user_func_array($callback, array_merge(Array($this->application), $params));
+					if($r === false) $return = false;
+					elseif(is_object($r) && ($r instanceof BaseStatus))
+						$status[] = $r;
+					else $status[] = true;
+				} catch(BaseStatus $status) {
+					$status[] = $status;
+				} catch(\Exception $exception) {
+					$status[] = $exception;
 					$return = false;
+				}
+			
 			return $return;
 		}
 		
@@ -48,11 +59,28 @@
 		public function triggerR($event, $params = Array()) {
 			if(!is_string($event)) return false;
 			if(!is_array($params)) return false;
-			if(!isset($this->events[$event])) $this->events[$event] = Array();
 			$return = Array();
-			foreach($this->events[$event] as $callback)
-				$return[] = call_user_func_array($callback, array_merge(Array($this->application), $params));
+			foreach($this->getHandlers($event) as $callback)
+				try {
+					$return[] = call_user_func_array($callback, array_merge(Array($this->application), $params));
+				} catch(BaseStatus $status) {
+					$return[] = $status;
+				} catch(\Exception $exception) {
+					$return[] = $exception;
+				}
+			
 			return $return;
+		}
+		
+		// function getHandlers(): Returns all handlers bound to an event
+		public function getHandlers($event = null) {
+			if(!is_array($this->events))
+				return Array();
+			elseif(!is_string($event))
+				return $this->events;
+			elseif(!isset($this->events[$event]) || !is_array($this->events[$event]))
+				return Array();
+			else return $this->events[$event];
 		}
 	}
 	
