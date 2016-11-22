@@ -465,9 +465,12 @@
 		
 		// function message(): Adds a message to messages
 		public function message($message, $type = "neutral") {
+			if(is_int($message) || is_float($message))
+				$message = (string)$message;
+			
 			if(is_string($message) && (strlen($message) > 0))
 				$this->messages[] = Array("type" => $type, "message" => $message);
-			return $this;
+			return $this->status("Message")->type($type);
 		}
 		
 		// function success(): Adds a success message
@@ -476,8 +479,10 @@
 		}
 		
 		// function error(): Adds an error message
-		public function error($message) {
-			return $this->message($message, "error");
+		public function error($message, $error = false) {
+			if(($error !== true) || $this->errors())
+				return $this->message($message, "error");
+			else return $this->status("Message")->type("error");
 		}
 		
 		// function getMessages(): Gets all messages

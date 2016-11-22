@@ -20,7 +20,7 @@
 			return $this;
 		}
 		
-		public function continue() {
+		public function continuestatus() {
 			$this->application->error($this->error, true);
 		}
 	}

@@ -2,7 +2,7 @@
 	/* Asteroid
 	 * class BaseStatus
 	 * 
-	 * Returned / thrown when something is run successfully.
+	 * Returned / thrown when something is run.
 	 */
 	namespace Asteroid;
 	abstract class BaseStatus extends Exception {
@@ -32,6 +32,35 @@
 		
 		public function continuestatus() {
 			
+		}
+		
+		public function __debugInfo() {
+			return (array)$this->getStatus();
+		}
+		
+		public function status($type = "PlainStatus") {
+			return $this->application->status($type);
+		}
+		
+		public function message($message, $type = "neutral") {
+			return $this->application->message($message, $type);
+		}
+		
+		public function success($message) {
+			return $this->application->success($message);
+		}
+		
+		public function error($message, $error = false) {
+			return $this->application->message($message, $error);
+		}
+		
+		public function view() {
+			return $this->application->view();
+		}
+		
+		public function __get($name) {
+			if($name == "view")
+				return $this->view();
 		}
 	}
 	
