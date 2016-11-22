@@ -17,6 +17,7 @@
 		protected $events = null;
 		protected $session = null;
 		protected $filesystem = Array();
+		protected $status = null;
 		
 		protected $definitions = Array();
 		
@@ -128,6 +129,26 @@
 			return new Filesystem($this, $directory);
 		}
 		
+		// function status(): Creates a status object
+		public function status($type = "PlainStatus") {
+			if(!is_string($type))
+				throw new Exception(__METHOD__, "\$type must be a string.");
+			
+			$class = $this->configuration([ "status", $type ]);
+			if(!class_exists($class) && !class_exists($class = "Asteroid\\Status\\" . $type))
+				throw new Exception(__METHOD__, "Failed to load status {$type}.");
+			
+			return new $class($this);
+		}
+		
+		public function successs() {
+			return $this->status("Success");
+		}
+		
+		public function notfounds() {
+			return $this->status("NotFound");
+		}
+		
 		// function __get(): Gets a defined variable
 		public function __get($name) {
 			if($name == "configuration") return $this->configuration();
@@ -139,6 +160,7 @@
 			elseif($name == "events") return $this->events();
 			elseif($name == "session") return $this->session();
 			elseif($name == "filesystem") return $this->filesystem();
+			elseif($name == "status") return $this->status();
 			elseif($name == "controllerurl") return $this->getControllerURL();
 			elseif($name == "action") return $this->getAction();
 			elseif($name == "actioninfo") return $this->getActionInfo();
@@ -210,7 +232,7 @@
 		
 		// function __isset(): Checks if a function / variable has been defined
 		public function __isset($name) {
-			if(in_array($name, Array("configuration", "authentication", "controller", "view", "request", "response", "events", "session", "filesystem", "controllerurl", "action", "actioninfo")))
+			if(in_array($name, Array("configuration", "authentication", "controller", "view", "request", "response", "events", "session", "filesystem", "status", "controllerurl", "action", "actioninfo")))
 				return true;
 			else return $this->defined($name);
 		}
