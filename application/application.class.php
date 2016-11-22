@@ -130,44 +130,67 @@
 		
 		// function __get(): Gets a defined variable
 		public function __get($name) {
-			if(!$this->defined($name) && isset($this->{$name}))
+			if($name == "configuration") return $this->configuration();
+			elseif($name == "authentication") return $this->authentication();
+			elseif($name == "controller") return $this->controller();
+			elseif($name == "view") return $this->view();
+			elseif($name == "request") return $this->request();
+			elseif($name == "response") return $this->response();
+			elseif($name == "events") return $this->events();
+			elseif($name == "session") return $this->session();
+			elseif($name == "filesystem") return $this->filesystem();
+			elseif($name == "controllerurl") return $this->getControllerURL();
+			elseif($name == "action") return $this->getAction();
+			elseif($name == "actioninfo") return $this->getActionInfo();
+			elseif(!$this->defined($name) && isset($this->{$name}))
 				return $this->{$name};
 			elseif(!$this->defined($name))
 				throw new Exception(__METHOD__, "\$name is not defined.");
-			elseif(!isset($this->definition($name)->value))
-				return null;
-			else return $this->definition($name)->value;
+			elseif(is_callable($this->definition($name)->value_function))
+				return call_user_func($this->definition($name)->value_function);
+			elseif(isset($this->definition($name)->value))
+				return $this->definition($name)->value;
+			else return null;
 		}
 		
 		// function __call(): Calls a defined function
 		public function __call($name, $parameters) {
 			if(!$this->defined($name))
-				throw new Exception(__METHOD__, "\$name is not defined.");
-			elseif(!isset($this->definition($name)->function) || !is_callable($this->definition($name)->function))
-				return null;
-			else return call_user_func_array($this->definition($name)->function, $parameters);
+				throw new Exception(__METHOD__, "\$name [{$name}] is not defined.");
+			elseif(isset($this->definition($name)->function) && is_callable($this->definition($name)->function))
+				return call_user_func_array($this->definition($name)->function, $parameters);
+			elseif(isset($this->definition($name)->value) && is_object($this->definition($name)->value) && (count($parameters) > 0))
+				return call_user_func_array(Array($this->definition($name)->value, $parameters[0]), array_slice($parameters, 1));
+			elseif(isset($this->definition($name)->value) && is_object($this->definition($name)->value))
+				return $this->definition($name)->value;
+			else return null;
 		}
 		
 		// function define(): Defines a function / variable / both
-		public function define($name, $variable, $function = null) {
+		public function define($name, $variable, $function = null, $variable_function = null) {
 			if(!is_string($name))
 				throw new Exception(__METHOD__, "\$name must be a string.");
 			if($this->defined($name))
 				throw new Exception(__METHOD__, "\$name is already defined.");
 			
-			if(($function === null) && is_callable($variable)) {
+			if(($function === null) && !is_object($variable) && is_callable($variable)) {
 				$function = $variable;
 				$variable = null;
 			}
 			
 			if(($function !== null) && !is_callable($function))
 				throw new Exception(__METHOD__, "\$function must be callable or null.");
-			if(($variable === null) && ($function === null))
-				throw new Exception(__METHOD__, "Either \$variable or \$function must be defined.");
+			if(($variable === null) && ($function === null) && ($variable_function === null))
+				throw new Exception(__METHOD__, "Either \$variable, \$function or \$variable_function must be defined.");
+			if(($variable_function !== null) && !is_callable($variable_function))
+				throw new Exception(__METHOD__, "\$variable_function must be callable or null.");
+			if(($variable !== null) && is_callable($variable_function))
+				throw new Exception(__METHOD__, "\$variable and \$variable_function cannot both be defined.");
 			
 			$definition = $this->definitions[$name] = new stdClass();
 			$definition->name = $name;
 			$definition->value = $variable;
+			$definition->value_function = $variable_function;
 			$definition->function = $function;
 		}
 		
@@ -183,6 +206,13 @@
 			if(is_object($this->definition($name)))
 				return true;
 			else return false;
+		}
+		
+		// function __isset(): Checks if a function / variable has been defined
+		public function __isset($name) {
+			if(in_array($name, Array("configuration", "authentication", "controller", "view", "request", "response", "events", "session", "filesystem", "controllerurl", "action", "actioninfo")))
+				return true;
+			else return $this->defined($name);
 		}
 		
 		// function subcontroller(): Lets an action use another controller
