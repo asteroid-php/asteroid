@@ -16,7 +16,7 @@
 		protected $response = null;
 		protected $events = null;
 		protected $session = null;
-		protected $filesystem = null;
+		protected $filesystem = Array();
 		
 		protected $definitions = Array();
 		
