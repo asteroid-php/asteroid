@@ -20,7 +20,8 @@
 	"require": {
 		"samuelthomas2774/oauth-client": "*",
 		"erusev/parsedown": "*",
-		"twig/twig": "*"
+		"twig/twig": "*",
+		"ezyang/htmlpurifier": "*"
 	},
 	"autoload": {
 		"files": [ "application/autoloader.class.php" ]

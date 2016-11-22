@@ -111,25 +111,10 @@
 				else return false;
 			}); $this->addFilter($filter_var);
 			
-			$filter_tag = new Twig_SimpleFilter("filter_tag", function($value, $tag) {
+			$filter = new Twig_SimpleFilter("filter", function($value, $allowed = null) {
 				$html = new HTML($value);
-				return $html->filter(Array($tag), Array());
-			}); $this->addFilter($filter_tag);
-			
-			$filter_tags = new Twig_SimpleFilter("filter_tags", function($value, $tags) {
-				$html = new HTML($value);
-				return $html->filter($tags, Array());
-			}); $this->addFilter($filter_tags);
-			
-			$filter_attr = new Twig_SimpleFilter("filter_attr", function($value, $attribute) {
-				$html = new HTML($value);
-				return $html->filter(Array(), Array($attribute));
-			}); $this->addFilter($filter_attr);
-			
-			$filter_attrs = new Twig_SimpleFilter("filter_attrs", function($value, $attributes) {
-				$html = new HTML($value);
-				return $html->filter(Array(), $attributes);
-			}); $this->addFilter($filter_attrs);
+				return $html->filter($allowed);
+			}, Array("is_safe" => Array("html"))); $this->addFilter($filter);
 			
 			$substr = new Twig_SimpleFilter("substr", function($value, $start, $length = null) {
 				if(!is_string($value) && !is_numeric($value)) return false;
