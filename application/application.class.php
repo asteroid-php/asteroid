@@ -5,8 +5,9 @@
 	namespace Asteroid;
 	use PDOException;
 	use ReflectionClass;
+	use JsonSerializable;
 	use stdClass;
-	class Application {
+	class Application implements JsonSerializable {
 		protected $configuration = null;
 		protected $authentication = null;
 		protected $controller = null;
@@ -496,12 +497,30 @@
 		public function getReport($sensitive = true) {
 			$report = new stdClass();
 			$report->version = $this->getVersion();
+			$report->controllerurl = $this->getControllerURL();
+			$report->action = $this->getAction();
+			$report->actioninfo = $this->getActionInfo();
+			
+			$report->libraries = new stdClass();
+			foreach($this->libraries as $class => $library)
+				if(method_exists($library, "getReport"))
+					$report->libraries->{$class} = $library->getReport($sensitive);
+			
+			foreach($this->events()->triggerR("get_report", Array($report, $sensitive)) as $report)
+				if(is_object($report) || is_array($report))
+					foreach($report as $k => $v)
+						if(!isset($report->{$k}))
+							$report->{$k} = $v;
 			
 			return $report;
 		}
 		
 		// function __debugInfo(): Returns information for the print_r and var_dump functions, so the output isn't really long and to prevent leaking configuration information - only works in PHP 5.6 or later
 		public function __debugInfo() {
+			return (array)$this->getReport(false);
+		}
+		
+		public function jsonSerialize() {
 			return (array)$this->getReport(false);
 		}
 	}
