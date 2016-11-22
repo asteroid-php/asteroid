@@ -8,7 +8,7 @@
 	use Asteroid\BaseController;
 	class Error extends BaseController {
 		public function _404() {
-			$this->application->error("The page you requested was not found.")->view()->render("blank");
+			return $this->application->error("The page you requested was not found.")->view()->render("blank");
 		}
 	}
 	
